@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterProjects, type Project } from "./slyk";
+import { filterProjects, type Project } from "@/lib/slyk";
 
 const p = (o: Partial<Project>): Project => ({
   id: "1", created_at: "", user_id: null, title: "Alpha", tagline: "", category: "AI/ML", stage: "Idea",
