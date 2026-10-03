@@ -14,16 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      connect_requests: {
+        Row: {
+          applicant_id: string
+          created_at: string
+          id: string
+          pitch_sentence: string
+          project_id: string
+          role_offered: string
+          status: Database["public"]["Enums"]["request_status"]
+        }
+        Insert: {
+          applicant_id: string
+          created_at?: string
+          id?: string
+          pitch_sentence: string
+          project_id: string
+          role_offered: string
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Update: {
+          applicant_id?: string
+          created_at?: string
+          id?: string
+          pitch_sentence?: string
+          project_id?: string
+          role_offered?: string
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connect_requests_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connect_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          direct_contact: string | null
+          full_name: string | null
+          id: string
+          primary_link: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          direct_contact?: string | null
+          full_name?: string | null
+          id: string
+          primary_link?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          direct_contact?: string | null
+          full_name?: string | null
+          id?: string
+          primary_link?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          category: Database["public"]["Enums"]["project_category"]
+          created_at: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id: string
+          incentive: Database["public"]["Enums"]["incentive_type"]
+          looking_for: string
+          stage: Database["public"]["Enums"]["project_stage"]
+          tagline: string
+          tech_stack: string[]
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["project_category"]
+          created_at?: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id?: string
+          incentive: Database["public"]["Enums"]["incentive_type"]
+          looking_for: string
+          stage: Database["public"]["Enums"]["project_stage"]
+          tagline: string
+          tech_stack?: string[]
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["project_category"]
+          created_at?: string
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          id?: string
+          incentive?: Database["public"]["Enums"]["incentive_type"]
+          looking_for?: string
+          stage?: Database["public"]["Enums"]["project_stage"]
+          tagline?: string
+          tech_stack?: string[]
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_applicant_contact: { Args: { _request_id: string }; Returns: string }
+      get_my_contact: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      entity_type: "Solo Founder" | "Early Team" | "Company"
+      incentive_type: "Equity" | "Paid" | "Equity + Paid" | "Open Source"
+      project_category: "AI/ML" | "SaaS" | "DevTools" | "Web3"
+      project_stage: "Idea" | "Prototype" | "Live Revenue" | "Funded"
+      request_status: "pending" | "accepted" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +276,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      entity_type: ["Solo Founder", "Early Team", "Company"],
+      incentive_type: ["Equity", "Paid", "Equity + Paid", "Open Source"],
+      project_category: ["AI/ML", "SaaS", "DevTools", "Web3"],
+      project_stage: ["Idea", "Prototype", "Live Revenue", "Funded"],
+      request_status: ["pending", "accepted", "declined"],
+    },
   },
 } as const
