@@ -12,6 +12,6 @@ describe("filterProjects", () => {
     expect(filterProjects([p({ tech_stack: ["PyTorch"] }), p({ id: "2" })], { ...all, q: "pytorch" })).toHaveLength(1);
   });
   it("filters by category", () => {
-    expect(filterProjects([p({}), p({ id: "2", category: "SaaS" })], { ...all, category: "SaaS" })[0].id).toBe("2");
+    expect(filterProjects([p({}), p({ id: "2", category: "SaaS" })], { ...all, category: "SaaS" })[0]?.id).toBe("2");
   });
 });

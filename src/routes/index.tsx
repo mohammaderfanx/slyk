@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(projectsOptions),
-  errorComponent: ({ error }) => <p className="p-8 text-center text-muted-foreground">Couldn't load projects: {error.message}</p>,
+  errorComponent: ({ error }) => <p className="p-8 text-center text-muted-foreground">Couldn't load projects: {error instanceof Error ? error.message : "Unknown error"}</p>,
   notFoundComponent: () => <p className="p-8 text-center">Not found</p>,
   component: Explore,
 });

@@ -65,7 +65,7 @@ function NewProject() {
       looking_for: lookingFor.trim(), tech_stack: tags,
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Project posted");
     await qc.invalidateQueries({ queryKey: ["projects"] });
     navigate({ to: "/dashboard" });
