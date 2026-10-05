@@ -26,8 +26,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 type Req = {
   id: string; created_at: string; project_id: string; applicant_id: string;
   role_offered: string; pitch_sentence: string; status: "pending" | "accepted" | "declined";
-  applicant?: { full_name: string | null; primary_link: string | null };
-  project_title?: string;
+  applicant?: { full_name: string | null; primary_link: string | null } | undefined;
+  project_title?: string | undefined;
 };
 
 function Dashboard() {
@@ -186,7 +186,7 @@ function ProfileForm({ userId }: { userId: string }) {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const { error } = await supabase.from("profiles").update(v!).eq("id", userId);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Profile saved");
     setDraft(null);
     qc.invalidateQueries({ queryKey: ["me", userId] });
