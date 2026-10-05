@@ -59,6 +59,44 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -67,6 +105,7 @@ export type Database = {
           full_name: string | null
           id: string
           primary_link: string | null
+          skills: string[]
         }
         Insert: {
           avatar_url?: string | null
@@ -75,6 +114,7 @@ export type Database = {
           full_name?: string | null
           id: string
           primary_link?: string | null
+          skills?: string[]
         }
         Update: {
           avatar_url?: string | null
@@ -83,6 +123,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           primary_link?: string | null
+          skills?: string[]
         }
         Relationships: []
       }
@@ -141,12 +182,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_connect: {
+        Args: { _request_id: string }
+        Returns: {
+          applicant_contact: string
+          applicant_name: string
+          owner_contact: string
+          owner_name: string
+          project_title: string
+          request_id: string
+        }[]
+      }
       get_applicant_contact: { Args: { _request_id: string }; Returns: string }
+      get_handshake: {
+        Args: { _request_id: string }
+        Returns: {
+          applicant_contact: string
+          applicant_name: string
+          owner_contact: string
+          owner_name: string
+          project_title: string
+          request_id: string
+        }[]
+      }
       get_my_contact: { Args: never; Returns: string }
     }
     Enums: {
       entity_type: "Solo Founder" | "Early Team" | "Company"
       incentive_type: "Equity" | "Paid" | "Equity + Paid" | "Open Source"
+      notification_type:
+        | "new_connect_request"
+        | "request_accepted"
+        | "request_declined"
       project_category: "AI/ML" | "SaaS" | "DevTools" | "Web3"
       project_stage: "Idea" | "Prototype" | "Live Revenue" | "Funded"
       request_status: "pending" | "accepted" | "declined"
@@ -279,6 +346,11 @@ export const Constants = {
     Enums: {
       entity_type: ["Solo Founder", "Early Team", "Company"],
       incentive_type: ["Equity", "Paid", "Equity + Paid", "Open Source"],
+      notification_type: [
+        "new_connect_request",
+        "request_accepted",
+        "request_declined",
+      ],
       project_category: ["AI/ML", "SaaS", "DevTools", "Web3"],
       project_stage: ["Idea", "Prototype", "Live Revenue", "Funded"],
       request_status: ["pending", "accepted", "declined"],
