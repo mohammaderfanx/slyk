@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,37 +8,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useMyProfile } from "@/hooks/use-slyk-data";
 import type { Project } from "@/lib/slyk";
 
 export function ConnectDialog({ project, onClose }: { project: Project | null; onClose: () => void }) {
   const { user } = useAuth();
+  const qc = useQueryClient();
+  const me = useMyProfile(user?.id);
   const [link, setLink] = useState("");
   const [role, setRole] = useState("");
   const [pitch, setPitch] = useState("");
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!project || !user) return;
+    if (!project) return;
     setRole(""); setPitch("");
-    supabase.from("profiles").select("primary_link").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setLink(data?.primary_link ?? ""));
-  }, [project, user]);
+    setLink(me.data?.primary_link ?? "");
+  }, [project, me.data]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!project || !user) return;
-    setBusy(true);
-    await supabase.from("profiles").update({ primary_link: link.trim() }).eq("id", user.id);
-    const { error } = await supabase.from("connect_requests").insert({
-      project_id: project.id, applicant_id: user.id, role_offered: role.trim(), pitch_sentence: pitch.trim(),
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.code === "23505" ? "You already sent a connect to this project." : error.message);
-      return;
-    }
-    toast.success("Connect sent. You'll get contact details if accepted.");
+    const key = ["sent", user.id];
+    const prev = qc.getQueryData<string[]>(key) ?? [];
+    // Optimistic: mark sent and close immediately
+    qc.setQueryData(key, [...prev, project.id]);
+    const p = project;
     onClose();
+    toast.success("Connect sent. You'll get contact details if accepted.");
+    if (link.trim() !== (me.data?.primary_link ?? "")) {
+      await supabase.from("profiles").update({ primary_link: link.trim() }).eq("id", user.id);
+      qc.invalidateQueries({ queryKey: ["me-public", user.id] });
+    }
+    const { error } = await supabase.from("connect_requests").insert({
+      project_id: p.id, applicant_id: user.id, role_offered: role.trim(), pitch_sentence: pitch.trim(),
+    });
+    if (error && error.code !== "23505") {
+      qc.setQueryData(key, prev);
+      toast.error(`Couldn't send to ${p.title}: ${error.message}`);
+    }
   }
 
   const own = project && user && project.user_id === user.id;
@@ -70,7 +78,7 @@ export function ConnectDialog({ project, onClose }: { project: Project | null; o
               <Label htmlFor="pitch">Why are you a fit?</Label>
               <Input id="pitch" required maxLength={300} placeholder="One sentence." value={pitch} onChange={(e) => setPitch(e.target.value)} />
             </div>
-            <Button type="submit" className="w-full" disabled={busy}>{busy ? "Sending…" : "Send connect"}</Button>
+            <Button type="submit" className="w-full">Send connect</Button>
           </form>
         )}
       </DialogContent>
