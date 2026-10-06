@@ -28,7 +28,6 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-1.5">
           <CommandPalette />
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/builders">Builders</Link></Button>
           {user && <Button asChild variant="ghost" size="sm"><Link to="/dashboard">Dashboard</Link></Button>}
           {user && <NotificationBell userId={user.id} />}
           <Button asChild size="sm">
