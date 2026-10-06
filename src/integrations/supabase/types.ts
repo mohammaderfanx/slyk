@@ -21,6 +21,7 @@ export type Database = {
           id: string
           pitch_sentence: string
           project_id: string
+          responded_at: string | null
           role_offered: string
           status: Database["public"]["Enums"]["request_status"]
         }
@@ -30,6 +31,7 @@ export type Database = {
           id?: string
           pitch_sentence: string
           project_id: string
+          responded_at?: string | null
           role_offered: string
           status?: Database["public"]["Enums"]["request_status"]
         }
@@ -39,6 +41,7 @@ export type Database = {
           id?: string
           pitch_sentence?: string
           project_id?: string
+          responded_at?: string | null
           role_offered?: string
           status?: Database["public"]["Enums"]["request_status"]
         }
@@ -49,6 +52,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connect_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
           },
           {
             foreignKeyName: "connect_requests_project_id_fkey"
@@ -103,29 +113,125 @@ export type Database = {
           created_at: string
           direct_contact: string | null
           full_name: string | null
+          github_handle: string | null
+          github_stats: Json | null
           id: string
           primary_link: string | null
+          reputation_score: number
           skills: string[]
+          verification_status: Database["public"]["Enums"]["verification_status"]
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           direct_contact?: string | null
           full_name?: string | null
+          github_handle?: string | null
+          github_stats?: Json | null
           id: string
           primary_link?: string | null
+          reputation_score?: number
           skills?: string[]
+          verification_status?: Database["public"]["Enums"]["verification_status"]
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           direct_contact?: string | null
           full_name?: string | null
+          github_handle?: string | null
+          github_stats?: Json | null
           id?: string
           primary_link?: string | null
+          reputation_score?: number
           skills?: string[]
+          verification_status?: Database["public"]["Enums"]["verification_status"]
         }
         Relationships: []
+      }
+      project_events: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["project_event_type"]
+          id: number
+          project_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["project_event_type"]
+          id?: never
+          project_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["project_event_type"]
+          id?: never
+          project_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_proofs: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          project_id: string
+          proof_type: Database["public"]["Enums"]["proof_type"]
+          url: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          project_id: string
+          proof_type: Database["public"]["Enums"]["proof_type"]
+          url: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          project_id?: string
+          proof_type?: Database["public"]["Enums"]["proof_type"]
+          url?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_proofs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_proofs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
@@ -179,7 +285,53 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      match_analytics: {
+        Row: {
+          accepted_count: number | null
+          avg_ttfr_hours: number | null
+          click_count: number | null
+          connect_conversion_rate: number | null
+          created_at: string | null
+          pitch_count: number | null
+          project_id: string | null
+          title: string | null
+          user_id: string | null
+          view_count: number | null
+        }
+        Insert: {
+          accepted_count?: never
+          avg_ttfr_hours?: never
+          click_count?: never
+          connect_conversion_rate?: never
+          created_at?: string | null
+          pitch_count?: never
+          project_id?: string | null
+          title?: string | null
+          user_id?: string | null
+          view_count?: never
+        }
+        Update: {
+          accepted_count?: never
+          avg_ttfr_hours?: never
+          click_count?: never
+          connect_conversion_rate?: never
+          created_at?: string | null
+          pitch_count?: never
+          project_id?: string | null
+          title?: string | null
+          user_id?: string | null
+          view_count?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_connect: {
@@ -206,6 +358,27 @@ export type Database = {
         }[]
       }
       get_my_contact: { Args: never; Returns: string }
+      recommend_builders: {
+        Args: { _project_id: string }
+        Returns: {
+          full_name: string
+          github_handle: string
+          id: string
+          overlap: number
+          primary_link: string
+          reputation_score: number
+          skills: string[]
+          verification_status: Database["public"]["Enums"]["verification_status"]
+        }[]
+      }
+      refresh_reputation: { Args: { _uid: string }; Returns: undefined }
+      track_project_events: {
+        Args: {
+          _project_ids: string[]
+          _type: Database["public"]["Enums"]["project_event_type"]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       entity_type: "Solo Founder" | "Early Team" | "Company"
@@ -215,8 +388,11 @@ export type Database = {
         | "request_accepted"
         | "request_declined"
       project_category: "AI/ML" | "SaaS" | "DevTools" | "Web3"
+      project_event_type: "impression" | "click" | "reveal"
       project_stage: "Idea" | "Prototype" | "Live Revenue" | "Funded"
+      proof_type: "github_repo" | "demo_video" | "live_metrics" | "deck_url"
       request_status: "pending" | "accepted" | "declined"
+      verification_status: "unverified" | "github_verified" | "top_builder"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -352,8 +528,11 @@ export const Constants = {
         "request_declined",
       ],
       project_category: ["AI/ML", "SaaS", "DevTools", "Web3"],
+      project_event_type: ["impression", "click", "reveal"],
       project_stage: ["Idea", "Prototype", "Live Revenue", "Funded"],
+      proof_type: ["github_repo", "demo_video", "live_metrics", "deck_url"],
       request_status: ["pending", "accepted", "declined"],
+      verification_status: ["unverified", "github_verified", "top_builder"],
     },
   },
 } as const
