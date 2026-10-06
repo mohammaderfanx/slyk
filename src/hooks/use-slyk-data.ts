@@ -34,3 +34,28 @@ export function useMySentIds(userId: string | undefined) {
     },
   });
 }
+
+export const proofsOptions = queryOptions({
+  queryKey: ["proofs"],
+  queryFn: async () => {
+    const { data, error } = await supabase.from("project_proofs").select("*").order("created_at");
+    if (error) throw error;
+    return data;
+  },
+  staleTime: 60_000,
+});
+
+const SEEN_KEY = "slyk-seen";
+/** Records feed impressions once per browser session per project. */
+export function trackImpressions(ids: string[]) {
+  if (typeof window === "undefined" || !ids.length) return;
+  const seen = new Set<string>(JSON.parse(sessionStorage.getItem(SEEN_KEY) ?? "[]"));
+  const fresh = ids.filter((id) => !seen.has(id));
+  if (!fresh.length) return;
+  fresh.forEach((id) => seen.add(id));
+  sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+  void supabase.rpc("track_project_events", { _project_ids: fresh, _type: "impression" });
+}
+export function trackEvent(id: string, type: "click" | "reveal") {
+  void supabase.rpc("track_project_events", { _project_ids: [id], _type: type });
+}

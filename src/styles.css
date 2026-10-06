@@ -77,3 +77,20 @@
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse at top, black 20%, transparent 70%);
 }
+
+/* High-contrast performance mode: pure black/white, no blur or transitions */
+.hc {
+  --background: oklch(0 0 0);
+  --card: oklch(0 0 0);
+  --popover: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card-foreground: oklch(1 0 0);
+  --muted-foreground: oklch(0.85 0 0);
+  --border: oklch(0.6 0 0);
+  --input: oklch(0.6 0 0);
+}
+.hc *, .hc *::before, .hc *::after {
+  transition: none !important;
+  animation: none !important;
+  backdrop-filter: none !important;
+}
