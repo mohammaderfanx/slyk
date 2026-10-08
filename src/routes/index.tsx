@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Check, LayoutGrid, Rows3, Search } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { Check, LayoutGrid, Rows3, Search, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ConnectDialog } from "@/components/ConnectDialog";
 import { useAuth } from "@/hooks/use-auth";
-import { projectsOptions, useMyProfile, useMySentIds } from "@/hooks/use-slyk-data";
-import { CATEGORIES, INCENTIVES, SORTS, STAGES, filterProjects, matchScore, sortProjects, type Project } from "@/lib/slyk";
+import { projectsOptions, proofsOptions, trackImpressions, useMyProfile, useMySentIds } from "@/hooks/use-slyk-data";
+import { CATEGORIES, INCENTIVES, SORTS, STAGES, filterProjects, matchScore, sortProjects, trustBadges, type Project } from "@/lib/slyk";
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -82,6 +82,10 @@ function Explore() {
     [data, q, category, stage, incentive, sort, skills],
   );
   const sentSet = new Set(sent.data ?? []);
+  const proofs = useQuery(proofsOptions);
+  const badgesFor = (id: string) => trustBadges((proofs.data ?? []).filter((x) => x.project_id === id));
+  const listKey = list.map((p) => p.id).join(",");
+  useEffect(() => { trackImpressions(listKey ? listKey.split(",") : []); }, [listKey]);
 
   return (
     <main>
@@ -130,7 +134,7 @@ function Explore() {
           <p className="py-16 text-center text-muted-foreground">No projects match these filters.</p>
         ) : view === "grid" ? (
           <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((p) => <ProjectCard key={p.id} p={p} score={matchScore(skills, p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
+            {list.map((p) => <ProjectCard key={p.id} p={p} badges={badgesFor(p.id)} score={matchScore(skills, p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border font-mono text-xs">
@@ -160,7 +164,7 @@ function ConnectButton({ sent, onConnect }: { sent: boolean; onConnect: () => vo
   );
 }
 
-function ProjectCard({ p, score, sent, onConnect }: { p: Project; score: number | null; sent: boolean; onConnect: () => void }) {
+function ProjectCard({ p, badges, score, sent, onConnect }: { p: Project; badges: string[]; score: number | null; sent: boolean; onConnect: () => void }) {
   return (
     <article className="flex flex-col gap-3 bg-card p-5 transition-colors hover:bg-accent/40">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -170,7 +174,10 @@ function ProjectCard({ p, score, sent, onConnect }: { p: Project; score: number 
         <span className="ml-auto"><ScoreBadge score={score} /></span>
       </div>
       <div>
-        <h2 className="font-semibold tracking-tight">{p.title}</h2>
+        <h2 className="font-semibold tracking-tight"><Link to="/p/$id" params={{ id: p.id }} className="hover:underline">{p.title}</Link></h2>
+        {badges.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-2">{badges.map((b) => <span key={b} className="inline-flex items-center gap-1 font-mono text-[11px] text-success"><ShieldCheck className="h-3 w-3" />{b}</span>)}</div>
+        )}
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{p.tagline}</p>
       </div>
       <div className="flex flex-wrap gap-1">
@@ -193,7 +200,7 @@ function TerminalRow({ p, score, sent, onConnect }: { p: Project; score: number 
   return (
     <div className="grid grid-cols-1 gap-1 border-b px-3 py-2 last:border-b-0 hover:bg-accent/40 md:grid-cols-[3rem_1.4fr_1fr_0.8fr_0.8fr_1.4fr_5.5rem] md:items-center md:gap-3">
       <span className={score !== null && score >= 60 ? "text-primary" : "text-muted-foreground"}>{score === null ? "—" : `${score}%`}</span>
-      <span className="truncate font-sans text-sm font-medium" title={p.tagline}>{p.title} <span className="text-muted-foreground">· {p.category}</span></span>
+      <span className="truncate font-sans text-sm font-medium" title={p.tagline}><Link to="/p/$id" params={{ id: p.id }} className="hover:underline">{p.title}</Link> <span className="text-muted-foreground">· {p.category}</span></span>
       <span className="truncate">{p.looking_for}</span>
       <span className="truncate text-muted-foreground">{p.stage}</span>
       <span className="truncate text-muted-foreground">{p.incentive}</span>

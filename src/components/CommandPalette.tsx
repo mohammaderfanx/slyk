@@ -59,15 +59,16 @@ export function CommandPalette() {
         <CommandList>
           <CommandEmpty>No results.</CommandEmpty>
           <CommandGroup heading="Actions">
-            <CommandItem onSelect={() => go(() => navigate({ to: "/dashboard" }))}><Inbox /> Jump to my pending pitches</CommandItem>
+            <CommandItem onSelect={() => go(() => navigate({ to: "/dashboard", search: { tab: "inbox" } }))}><Inbox /> Jump to my pending pitches</CommandItem>
             <CommandItem onSelect={() => go(() => navigate({ to: "/dashboard" }))}><LayoutDashboard /> Dashboard</CommandItem>
+            <CommandItem onSelect={() => go(() => navigate({ to: "/analytics" }))}><LayoutDashboard /> Analytics</CommandItem>
             <CommandItem onSelect={() => go(() => navigate({ to: "/projects/new" }))}><FolderPlus /> Post a Project</CommandItem>
             <CommandItem onSelect={() => go(exportMine)}><Download /> Export my projects & pitches</CommandItem>
             <CommandItem onSelect={() => go(toggleContrast)}><Contrast /> Toggle high-contrast performance mode</CommandItem>
           </CommandGroup>
           <CommandGroup heading="Search builders by stack">
             {stacks.map((s) => (
-              <CommandItem key={`b-${s}`} value={`builders ${s}`} onSelect={() => go(() => navigate({ to: "/", search: { q: s } }))}>
+              <CommandItem key={`b-${s}`} value={`builders ${s}`} onSelect={() => go(() => navigate({ to: "/builders", search: { q: s } }))}>
                 <Users /> Builders with <span className="font-mono">{s}</span>
               </CommandItem>
             ))}
@@ -81,7 +82,7 @@ export function CommandPalette() {
           </CommandGroup>
           <CommandGroup heading="Projects">
             {data.map((p) => (
-              <CommandItem key={p.id} value={`${p.title} ${p.looking_for} ${p.tech_stack.join(" ")}`} onSelect={() => go(() => navigate({ to: "/", search: { q: p.title } }))}>
+              <CommandItem key={p.id} value={`${p.title} ${p.looking_for} ${p.tech_stack.join(" ")}`} onSelect={() => go(() => navigate({ to: "/p/$id", params: { id: p.id } }))}>
                 {p.title}<span className="ml-auto text-xs text-muted-foreground">{p.looking_for}</span>
               </CommandItem>
             ))}

@@ -45,3 +45,17 @@ describe("contactLauncher", () => {
   it("@handle → telegram", () => expect(contactLauncher("@diego_builds", "D", "X")?.href).toMatch(/^https:\/\/t\.me\/diego_builds/));
   it("calendly", () => expect(contactLauncher("https://calendly.com/p", "P", "X")?.kind).toBe("calendly"));
 });
+
+import { pitchQuality, trustBadges, videoEmbed } from "@/lib/slyk";
+describe("phase 3 helpers", () => {
+  it("verified github repo → Verified Codebase", () => {
+    expect(trustBadges([{ proof_type: "github_repo", verified: true }])).toEqual(["Verified Codebase"]);
+    expect(trustBadges([{ proof_type: "github_repo", verified: false }])).toEqual([]);
+  });
+  it("relevant pitch with numbers beats a vague one", () => {
+    const proj = { tech_stack: ["PyTorch", "FastAPI"], looking_for: "ML Engineer" };
+    expect(pitchQuality("Shipped PyTorch + FastAPI models serving 2M requests/day.", proj, true))
+      .toBeGreaterThan(pitchQuality("hi I am interested", proj, false));
+  });
+  it("youtube embed", () => expect(videoEmbed("https://www.youtube.com/watch?v=aircAruvnKk")).toBe("https://www.youtube-nocookie.com/embed/aircAruvnKk"));
+});

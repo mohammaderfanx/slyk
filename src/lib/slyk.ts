@@ -42,7 +42,7 @@ export function matchScore(skills: string[], p: Project): number | null {
   const stack = p.tech_stack.map(norm).filter(Boolean);
   const stackHits = stack.filter((t) => mine.some((m) => m === t || t.includes(m) || m.includes(t))).length;
   const role = norm(p.looking_for);
-  const roleHit = mine.some((m) => m.length > 2 && role.includes(m)) ? 1 : 0;
+  const roleHit = mine.some((m) => m.length >= 2 && role.includes(m)) ? 1 : 0;
   const total = stack.length + 1;
   return Math.round(((stackHits + roleHit) / total) * 100);
 }

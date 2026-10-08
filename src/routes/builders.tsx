@@ -31,7 +31,7 @@ function Builders() {
       // Public columns only — direct_contact is never selectable by clients
       const { data, error } = await supabase.from("profiles")
         .select("id, full_name, primary_link, skills, github_handle, verification_status, reputation_score, github_stats")
-        .neq("skills", "{}").order("reputation_score", { ascending: false }).limit(200);
+        .not("skills", "eq", "{}").order("reputation_score", { ascending: false }).limit(200);
       if (error) throw error;
       return data;
     },
