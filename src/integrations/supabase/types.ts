@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           applicant_id: string
           created_at: string
+          flag_reason: string | null
+          flagged: boolean
           id: string
           pitch_sentence: string
           project_id: string
@@ -28,6 +30,8 @@ export type Database = {
         Insert: {
           applicant_id: string
           created_at?: string
+          flag_reason?: string | null
+          flagged?: boolean
           id?: string
           pitch_sentence: string
           project_id: string
@@ -38,6 +42,8 @@ export type Database = {
         Update: {
           applicant_id?: string
           created_at?: string
+          flag_reason?: string | null
+          flagged?: boolean
           id?: string
           pitch_sentence?: string
           project_id?: string
@@ -107,6 +113,35 @@ export type Database = {
           },
         ]
       }
+      profile_embeddings: {
+        Row: {
+          content_hash: string
+          embedding: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_hash: string
+          embedding: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_hash?: string
+          embedding?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_embeddings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -148,6 +183,42 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["verification_status"]
         }
         Relationships: []
+      }
+      project_embeddings: {
+        Row: {
+          content_hash: string
+          embedding: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_hash: string
+          embedding: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_hash?: string
+          embedding?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_embeddings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_embeddings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_events: {
         Row: {
@@ -345,6 +416,14 @@ export type Database = {
           request_id: string
         }[]
       }
+      applicant_semantic_scores: {
+        Args: never
+        Returns: {
+          applicant_id: string
+          project_id: string
+          similarity: number
+        }[]
+      }
       get_applicant_contact: { Args: { _request_id: string }; Returns: string }
       get_handshake: {
         Args: { _request_id: string }
@@ -358,6 +437,13 @@ export type Database = {
         }[]
       }
       get_my_contact: { Args: never; Returns: string }
+      my_semantic_scores: {
+        Args: never
+        Returns: {
+          project_id: string
+          similarity: number
+        }[]
+      }
       recommend_builders: {
         Args: { _project_id: string }
         Returns: {
@@ -367,6 +453,7 @@ export type Database = {
           overlap: number
           primary_link: string
           reputation_score: number
+          similarity: number
           skills: string[]
           verification_status: Database["public"]["Enums"]["verification_status"]
         }[]
