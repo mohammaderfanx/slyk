@@ -29,6 +29,13 @@
       "when": 1791441467340,
       "tag": "0003_semantic_matching_and_spam_filter",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791525105397,
+      "tag": "0004_missing_embeddings_helpers",
+      "breakpoints": true
     }
   ]
 }

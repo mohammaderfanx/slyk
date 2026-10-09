@@ -27,17 +27,32 @@ export const refreshMyEmbeddings = createServerFn({ method: "POST" })
       const text = projectText(p);
       jobs.push({ kind: "project", id: p.id, text, hash: await hashText(text) });
     }
+    // Also fill in any public projects / builders that have never been embedded (e.g. seed data). Bounded to 20.
+    const [{ data: missingProjects }, { data: missingProfiles }] = await Promise.all([
+      supabaseAdmin.rpc("projects_missing_embeddings"),
+      supabaseAdmin.rpc("profiles_missing_embeddings"),
+    ]);
+    for (const p of missingProjects ?? []) {
+      if (jobs.some((j) => j.id === p.id)) continue;
+      const text = projectText(p);
+      jobs.push({ kind: "project", id: p.id, text, hash: await hashText(text) });
+    }
+    for (const p of missingProfiles ?? []) {
+      if (p.id === uid) continue;
+      const text = profileText(p);
+      jobs.push({ kind: "profile", id: p.id, text, hash: await hashText(text) });
+    }
     if (!jobs.length) return { updated: 0 };
 
     const [{ data: pe }, { data: fe }] = await Promise.all([
       supabaseAdmin.from("project_embeddings").select("project_id, content_hash").in("project_id", jobs.filter((j) => j.kind === "project").map((j) => j.id)),
-      supabaseAdmin.from("profile_embeddings").select("profile_id, content_hash").eq("profile_id", uid),
+      supabaseAdmin.from("profile_embeddings").select("profile_id, content_hash").in("profile_id", jobs.filter((j) => j.kind === "profile").map((j) => j.id)),
     ]);
     const existing = new Map<string, string>([
       ...(pe ?? []).map((r) => [`project:${r.project_id}`, r.content_hash] as [string, string]),
       ...(fe ?? []).map((r) => [`profile:${r.profile_id}`, r.content_hash] as [string, string]),
     ]);
-    const stale = jobs.filter((j) => existing.get(`${j.kind}:${j.id}`) !== j.hash);
+    const stale = jobs.filter((j) => existing.get(`${j.kind}:${j.id}`) !== j.hash).slice(0, 32);
     if (!stale.length) return { updated: 0 };
 
     const vectors = await embed(stale.map((j) => j.text));

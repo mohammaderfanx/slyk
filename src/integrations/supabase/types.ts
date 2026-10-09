@@ -444,6 +444,36 @@ export type Database = {
           similarity: number
         }[]
       }
+      profiles_missing_embeddings: {
+        Args: never
+        Returns: {
+          github_stats: Json
+          id: string
+          skills: string[]
+        }[]
+      }
+      projects_missing_embeddings: {
+        Args: never
+        Returns: {
+          category: Database["public"]["Enums"]["project_category"]
+          created_at: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id: string
+          incentive: Database["public"]["Enums"]["incentive_type"]
+          looking_for: string
+          stage: Database["public"]["Enums"]["project_stage"]
+          tagline: string
+          tech_stack: string[]
+          title: string
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "projects"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       recommend_builders: {
         Args: { _project_id: string }
         Returns: {
