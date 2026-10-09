@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ConnectDialog } from "@/components/ConnectDialog";
 import { useAuth } from "@/hooks/use-auth";
-import { projectsOptions, proofsOptions, trackImpressions, useMyProfile, useMySentIds } from "@/hooks/use-slyk-data";
+import { projectsOptions, proofsOptions, trackImpressions, useMyProfile, useMySentIds, useSemanticScores } from "@/hooks/use-slyk-data";
 import { CATEGORIES, INCENTIVES, SORTS, STAGES, filterProjects, matchScore, sortProjects, trustBadges, type Project } from "@/lib/slyk";
 
 const searchSchema = z.object({
@@ -58,6 +58,8 @@ function Explore() {
   const me = useMyProfile(user?.id);
   const sent = useMySentIds(user?.id);
   const skills = me.data?.skills ?? [];
+  const semantic = useSemanticScores(user?.id);
+  const scoreOf = (p: Project) => semantic.data?.get(p.id) ?? matchScore(skills, p);
   const [active, setActive] = useState<Project | null>(null);
 
   const q = search.q ?? "";
@@ -78,8 +80,8 @@ function Explore() {
     });
 
   const list = useMemo(
-    () => sortProjects(filterProjects(data, { q, category, stage, incentive }), sort, skills),
-    [data, q, category, stage, incentive, sort, skills],
+    () => sortProjects(filterProjects(data, { q, category, stage, incentive }), sort, skills, semantic.data),
+    [data, q, category, stage, incentive, sort, skills, semantic.data],
   );
   const sentSet = new Set(sent.data ?? []);
   const proofs = useQuery(proofsOptions);
@@ -117,7 +119,7 @@ function Explore() {
               <SelectTrigger className="w-full lg:w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="recent">Most Recent</SelectItem>
-                <SelectItem value="match" disabled={!skills.length}>Highest Match{!skills.length && " (add skills)"}</SelectItem>
+                <SelectItem value="match" disabled={!skills.length && !semantic.data?.size}>Highest Match{!skills.length && " (add skills)"}</SelectItem>
                 <SelectItem value="comp">Compensation</SelectItem>
               </SelectContent>
             </Select>
@@ -134,14 +136,14 @@ function Explore() {
           <p className="py-16 text-center text-muted-foreground">No projects match these filters.</p>
         ) : view === "grid" ? (
           <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((p) => <ProjectCard key={p.id} p={p} badges={badgesFor(p.id)} score={matchScore(skills, p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
+            {list.map((p) => <ProjectCard key={p.id} p={p} badges={badgesFor(p.id)} score={scoreOf(p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border font-mono text-xs">
             <div className="hidden grid-cols-[3rem_1.4fr_1fr_0.8fr_0.8fr_1.4fr_5.5rem] gap-3 border-b bg-muted/40 px-3 py-2 uppercase tracking-wider text-muted-foreground md:grid">
               <span>Match</span><span>Project</span><span>Role</span><span>Stage</span><span>Incentive</span><span>Stack</span><span />
             </div>
-            {list.map((p) => <TerminalRow key={p.id} p={p} score={matchScore(skills, p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
+            {list.map((p) => <TerminalRow key={p.id} p={p} score={scoreOf(p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
           </div>
         )}
       </div>

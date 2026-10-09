@@ -49,9 +49,10 @@ export function matchScore(skills: string[], p: Project): number | null {
 
 const COMP_RANK: Record<string, number> = { "Equity + Paid": 3, Paid: 2, Equity: 1, "Open Source": 0 };
 
-export function sortProjects(list: Project[], sort: Sort, skills: string[]) {
+export function sortProjects(list: Project[], sort: Sort, skills: string[], semantic?: Map<string, number>) {
   const out = [...list];
-  if (sort === "match") out.sort((a, b) => (matchScore(skills, b) ?? 0) - (matchScore(skills, a) ?? 0));
+  const score = (p: Project) => semantic?.get(p.id) ?? matchScore(skills, p) ?? 0;
+  if (sort === "match") out.sort((a, b) => score(b) - score(a));
   else if (sort === "comp") out.sort((a, b) => (COMP_RANK[b.incentive] ?? 0) - (COMP_RANK[a.incentive] ?? 0));
   else out.sort((a, b) => b.created_at.localeCompare(a.created_at));
   return out;
@@ -118,4 +119,9 @@ export function videoEmbed(url: string): string | null {
 export function githubRepoPath(url: string): string | null {
   const m = url.match(/^https:\/\/github\.com\/([\w.-]+)\/([\w.-]+)\/?$/);
   return m ? `${m[1]}/${m[2]}` : null;
+}
+
+/** Maps cosine similarity (text-embedding-3-small) to a 0-100 match %. */
+export function simToPct(sim: number) {
+  return Math.round(Math.max(0, Math.min(1, (sim - 0.15) / 0.45)) * 100);
 }
