@@ -17,7 +17,6 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
-import { Route as ApiPublicOgIdRouteImport } from './routes/api/public/og.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,11 +58,6 @@ const AuthenticatedProjectsNewRoute =
     path: '/projects/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicOgIdRoute = ApiPublicOgIdRouteImport.update({
-  id: '/api/public/og/$id',
-  path: '/api/public/og/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,7 +67,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/p/$id': typeof PIdRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
-  '/api/public/og/$id': typeof ApiPublicOgIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,7 +76,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/p/$id': typeof PIdRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
-  '/api/public/og/$id': typeof ApiPublicOgIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,7 +87,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/p/$id': typeof PIdRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
-  '/api/public/og/$id': typeof ApiPublicOgIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,7 +98,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/p/$id'
     | '/projects/new'
-    | '/api/public/og/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,7 +107,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/p/$id'
     | '/projects/new'
-    | '/api/public/og/$id'
   id:
     | '__root__'
     | '/'
@@ -128,7 +117,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/p/$id'
     | '/_authenticated/projects/new'
-    | '/api/public/og/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,7 +125,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BuildersRoute: typeof BuildersRoute
   PIdRoute: typeof PIdRoute
-  ApiPublicOgIdRoute: typeof ApiPublicOgIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -198,13 +185,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/og/$id': {
-      id: '/api/public/og/$id'
-      path: '/api/public/og/$id'
-      fullPath: '/api/public/og/$id'
-      preLoaderRoute: typeof ApiPublicOgIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -229,7 +209,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BuildersRoute: BuildersRoute,
   PIdRoute: PIdRoute,
-  ApiPublicOgIdRoute: ApiPublicOgIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
