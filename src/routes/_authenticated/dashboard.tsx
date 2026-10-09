@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { BarChart3, Calendar, Check, ExternalLink, Github, Link2, Mail, Send, ShieldCheck, Trash2, X } from "lucide-react";
+import { BarChart3, ShieldAlert, Calendar, Check, ExternalLink, Github, Link2, Mail, Send, ShieldCheck, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,8 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { syncGithub, verifyProof } from "@/lib/builder.functions";
+import { useRefreshEmbeddings } from "@/hooks/use-slyk-data";
 import {
-  PROFILE_COLS, PROOF_LABELS, PROOF_TYPES, applicantRank, contactLauncher, matchScore, pitchQuality,
+  PROFILE_COLS, PROOF_LABELS, PROOF_TYPES, applicantRank, contactLauncher, matchScore, pitchQuality, simToPct,
   type Launcher, type Project, type Proof,
 } from "@/lib/slyk";
 
@@ -38,7 +39,7 @@ type Status = "pending" | "accepted" | "declined";
 type Applicant = { id: string; full_name: string | null; primary_link: string | null; skills: string[]; reputation_score: number; verification_status: string; github_handle: string | null };
 type Req = {
   id: string; created_at: string; project_id: string; applicant_id: string;
-  role_offered: string; pitch_sentence: string; status: Status;
+  role_offered: string; pitch_sentence: string; status: Status; flagged: boolean; flag_reason: string | null; semantic: boolean;
   applicant?: Applicant | undefined; project?: Project | undefined; rank: number; quality: number; match: number;
 };
 type Handshake = { request_id: string; project_title: string; owner_name: string; owner_contact: string; applicant_name: string; applicant_contact: string };
@@ -65,22 +66,27 @@ function Dashboard() {
       if (!list.length) return [];
       const { data, error } = await supabase.from("connect_requests").select("*").in("project_id", list.map((p) => p.id)).order("created_at", { ascending: false });
       if (error) throw error;
-      const { data: profs } = await supabase.from("profiles").select(PROFILE_COLS).in("id", [...new Set(data.map((r) => r.applicant_id))]);
+      const [{ data: profs }, { data: sims }] = await Promise.all([
+        supabase.from("profiles").select(PROFILE_COLS).in("id", [...new Set(data.map((r) => r.applicant_id))]),
+        supabase.rpc("applicant_semantic_scores"),
+      ]);
+      const simBy = new Map((sims ?? []).map((x) => [`${x.project_id}:${x.applicant_id}`, simToPct(x.similarity)]));
       const byId = new Map((profs ?? []).map((p) => [p.id, p as unknown as Applicant]));
       const projById = new Map(list.map((p) => [p.id, p]));
       return data
         .map((r) => {
           const applicant = byId.get(r.applicant_id);
           const project = projById.get(r.project_id);
-          const match = project ? matchScore(applicant?.skills ?? [], project) ?? 0 : 0;
+          const sem = simBy.get(`${r.project_id}:${r.applicant_id}`);
+          const match = sem ?? (project ? matchScore(applicant?.skills ?? [], project) ?? 0 : 0);
           const quality = project ? pitchQuality(r.pitch_sentence, project, !!applicant?.primary_link) : 0;
-          return { ...r, applicant, project, match, quality, rank: applicantRank(match, applicant?.reputation_score ?? 100, quality) };
+          return { ...r, semantic: sem !== undefined, applicant, project, match, quality, rank: applicantRank(match, applicant?.reputation_score ?? 100, quality) };
         })
         .sort((a, b) => b.rank - a.rank);
     },
   });
 
-  const pending = inbound.data?.filter((r) => r.status === "pending").length ?? 0;
+  const pending = inbound.data?.filter((r) => r.status === "pending" && !r.flagged).length ?? 0;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
@@ -128,13 +134,15 @@ function LauncherButton({ l }: { l: Launcher }) {
 }
 
 /* ---------------- Inbox ---------------- */
-const FILTERS: { key: Status; label: string }[] = [
-  { key: "pending", label: "Pending" }, { key: "accepted", label: "Accepted" }, { key: "declined", label: "Archived" },
+type Filter = Status | "filtered";
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "pending", label: "Pending" }, { key: "accepted", label: "Accepted" }, { key: "declined", label: "Archived" }, { key: "filtered", label: "Filtered" },
 ];
+const inFilter = (r: Req, f: Filter) => f === "filtered" ? r.flagged && r.status === "pending" : f === "pending" ? r.status === "pending" && !r.flagged : r.status === f;
 
 function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading: boolean; reqs: Req[]; hasProjects: boolean }) {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<Status>("pending");
+  const [filter, setFilter] = useState<Filter>("pending");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const key = ["inbound", userId];
 
@@ -165,10 +173,16 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
     onSuccess: (hs) => { for (const h of hs) qc.setQueryData(["handshake", h.request_id], h); },
   });
 
+  async function notSpam(id: string) {
+    qc.setQueryData<Req[]>(key, (old = []) => old.map((r) => (r.id === id ? { ...r, flagged: false } : r)));
+    const { error } = await supabase.from("connect_requests").update({ flagged: false }).eq("id", id);
+    if (error) { toast.error(error.message); qc.invalidateQueries({ queryKey: key }); }
+  }
+
   if (loading) return <p className="text-muted-foreground">Loading…</p>;
   if (!hasProjects) return <Empty text="Post a project to start receiving pitches." cta />;
 
-  const list = reqs.filter((r) => r.status === filter);
+  const list = reqs.filter((r) => inFilter(r, filter));
   const allSel = list.length > 0 && list.every((r) => selected.has(r.id));
   const toggle = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
@@ -178,11 +192,11 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
         <div className="flex gap-1 rounded-md border p-1">
           {FILTERS.map((f) => (
             <Button key={f.key} size="sm" variant={filter === f.key ? "secondary" : "ghost"} onClick={() => { setFilter(f.key); setSelected(new Set()); }}>
-              {f.label} <span className="font-mono text-xs text-muted-foreground">{reqs.filter((r) => r.status === f.key).length}</span>
+              {f.label} <span className="font-mono text-xs text-muted-foreground">{reqs.filter((r) => inFilter(r, f.key)).length}</span>
             </Button>
           ))}
         </div>
-        {filter === "pending" && selected.size > 0 && (
+        {(filter === "pending" || filter === "filtered") && selected.size > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{selected.size} selected</span>
             <Button size="sm" onClick={() => decide.mutate({ ids: [...selected], status: "accepted" })}><Check /> Accept</Button>
@@ -192,7 +206,7 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
       </div>
       {list.length === 0 ? <Empty text={`No ${FILTERS.find((f) => f.key === filter)!.label.toLowerCase()} pitches.`} /> : (
         <div className="divide-y rounded-lg border">
-          {filter === "pending" && (
+          {(filter === "pending" || filter === "filtered") && (
             <label className="flex items-center gap-3 px-4 py-2 text-xs text-muted-foreground">
               <Checkbox checked={allSel} onCheckedChange={(c) => setSelected(c ? new Set(list.map((r) => r.id)) : new Set())} />
               Select all · ranked by match + reputation + pitch quality
@@ -200,7 +214,7 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
           )}
           {list.map((r) => (
             <div key={r.id} className="grid gap-3 p-4 md:grid-cols-[auto_1fr_auto] md:items-start">
-              {filter === "pending" ? <Checkbox className="mt-1" checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} aria-label="Select pitch" /> : <span />}
+              {filter === "pending" || filter === "filtered" ? <Checkbox className="mt-1" checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} aria-label="Select pitch" /> : <span />}
               <div className="min-w-0 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{r.applicant?.full_name ?? "Builder"}</span>
@@ -210,9 +224,10 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
                   <span className="text-xs text-muted-foreground">→ {r.project?.title}</span>
                 </div>
                 <p className="text-sm text-muted-foreground">“{r.pitch_sentence}”</p>
+                {r.flagged && <p className="flex items-center gap-1 text-xs text-destructive"><ShieldAlert className="h-3 w-3" /> Filtered: {r.flag_reason}</p>}
                 <div className="flex flex-wrap gap-3 font-mono text-[11px] text-muted-foreground">
                   <span className="text-primary">rank {r.rank}</span>
-                  <span>match {r.match}%</span><span>rep {r.applicant?.reputation_score ?? 100}</span><span>quality {r.quality}</span>
+                  <span>{r.semantic ? "AI match" : "match"} {r.match}%</span><span>rep {r.applicant?.reputation_score ?? 100}</span><span>quality {r.quality}</span>
                   {r.applicant?.primary_link && (
                     <a href={r.applicant.primary_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                       {r.applicant.primary_link.replace(/^https?:\/\//, "")} <ExternalLink className="h-3 w-3" />
@@ -221,6 +236,7 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                {r.flagged && r.status === "pending" && <Button size="sm" variant="ghost" onClick={() => notSpam(r.id)}>Not spam</Button>}
                 {r.status === "pending" && (
                   <>
                     <Button size="sm" onClick={() => decide.mutate({ ids: [r.id], status: "accepted" })}>Accept</Button>
@@ -378,6 +394,7 @@ function ProjectPanel({ p }: { p: Project }) {
                 <div className="truncate font-mono text-[11px] text-muted-foreground">{b.skills.join(" · ")}</div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                {b.similarity != null && <span className="font-mono text-[11px] text-primary">{simToPct(b.similarity)}% AI</span>}
                 <span className="font-mono text-[11px] text-muted-foreground">rep {b.reputation_score}</span>
                 {b.primary_link && <Button asChild size="sm" variant="ghost"><a href={b.primary_link} target="_blank" rel="noreferrer"><ExternalLink /></a></Button>}
               </div>
@@ -395,6 +412,7 @@ type ProfileDraft = { full_name: string; primary_link: string; direct_contact: s
 function ProfileForm({ userId }: { userId: string }) {
   const qc = useQueryClient();
   const sync = useServerFn(syncGithub);
+  const refreshAi = useRefreshEmbeddings();
   const [gh, setGh] = useState("");
   const [syncing, setSyncing] = useState(false);
   const q = useQuery({
@@ -429,6 +447,7 @@ function ProfileForm({ userId }: { userId: string }) {
     setDraft(null);
     qc.invalidateQueries({ queryKey: ["me", userId] });
     qc.invalidateQueries({ queryKey: ["me-public", userId] });
+    void refreshAi();
   }
 
   async function doSync(e: React.FormEvent) {

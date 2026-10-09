@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useRefreshEmbeddings } from "@/hooks/use-slyk-data";
 import { CATEGORIES, ENTITIES, INCENTIVES, STAGES } from "@/lib/slyk";
 
 export const Route = createFileRoute("/_authenticated/projects/new")({
@@ -39,6 +40,7 @@ function NewProject() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const refreshAi = useRefreshEmbeddings();
   const [title, setTitle] = useState("");
   const [tagline, setTagline] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
@@ -67,6 +69,7 @@ function NewProject() {
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Project posted");
+    void refreshAi();
     await qc.invalidateQueries({ queryKey: ["projects"] });
     navigate({ to: "/dashboard" });
   }
