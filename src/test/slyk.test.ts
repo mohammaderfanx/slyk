@@ -59,3 +59,12 @@ describe("phase 3 helpers", () => {
   });
   it("youtube embed", () => expect(videoEmbed("https://www.youtube.com/watch?v=aircAruvnKk")).toBe("https://www.youtube-nocookie.com/embed/aircAruvnKk"));
 });
+
+import { simToPct } from "@/lib/slyk";
+describe("semantic match %", () => {
+  it("maps similarity to 0-100 and clamps", () => {
+    expect(simToPct(0.1)).toBe(0);
+    expect(simToPct(0.6)).toBe(100);
+    expect(simToPct(0.375)).toBe(50);
+  });
+});
