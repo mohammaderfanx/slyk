@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/hooks/use-auth";
+import { useEmbeddingsOnSignIn } from "@/hooks/use-slyk-data";
 import { supabase } from "@/integrations/supabase/client";
 
 export function SiteHeader() {
   const { user } = useAuth();
+  useEmbeddingsOnSignIn(user?.id);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
