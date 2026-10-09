@@ -15,4 +15,7 @@
 - [x] /builders search page
 - [x] Cmd+K: pending pitches, export, builders by stack, high-contrast toggle
 - [x] Seed to 10 projects with real GitHub proofs
-- [ ] Blocked: dynamic OG images, email/Telegram alerts (need decision/keys)
+- [x] AI semantic matching (embeddings) for feed, inbox ranking, recommended builders
+- [x] Spam pitch filter (Filtered tab, no notification)
+- [ ] Blocked: per-project share images (renderer needs WebAssembly that the preview server cannot load)
+- [ ] Blocked: email/Telegram alerts (need Resend or Telegram key)
