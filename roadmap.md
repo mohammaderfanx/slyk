@@ -19,3 +19,13 @@
 - [x] Spam pitch filter (Filtered tab, no notification)
 - [ ] Blocked: per-project share images (renderer needs WebAssembly that the preview server cannot load)
 - [ ] Blocked: email/Telegram alerts (need Resend or Telegram key)
+
+## Phase 4
+- [ ] Secure alignment, feedback, integration settings, invites, master pitches and activity schema
+- [ ] Co-founder calculator, alignment editor and accepted-connection checklist
+- [ ] Deep-proof builder directory, verified invitations and Instant Apply
+- [ ] Integration manager and private notification routing
+- [ ] Live presence, trending targets and aggregate acceptance activity
+- [ ] Inngest orchestration, GitHub sync, weekly Resend digest and re-engagement
+- [ ] Clearly labelled sample builders and four new sample projects
+- [ ] Tests and authenticated end-to-end checks
