@@ -36,6 +36,13 @@
       "when": 1791525105397,
       "tag": "0004_missing_embeddings_helpers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793552125358,
+      "tag": "0005_phase4_ecosystem",
+      "breakpoints": true
     }
   ]
 }
