@@ -14,6 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
+      builder_invites: {
+        Row: {
+          builder_id: string
+          created_at: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          builder_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          builder_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_invites_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_invites_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "builder_invites_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      builder_preferences: {
+        Row: {
+          available: boolean
+          digest_email: string | null
+          last_digest_at: string | null
+          master_pitch: string | null
+          master_role: string | null
+          user_id: string
+          weekly_digest: boolean
+        }
+        Insert: {
+          available?: boolean
+          digest_email?: string | null
+          last_digest_at?: string | null
+          master_pitch?: string | null
+          master_role?: string | null
+          user_id: string
+          weekly_digest?: boolean
+        }
+        Update: {
+          available?: boolean
+          digest_email?: string | null
+          last_digest_at?: string | null
+          master_pitch?: string | null
+          master_role?: string | null
+          user_id?: string
+          weekly_digest?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cofounder_alignment_matrix: {
+        Row: {
+          equity_range_offered: string
+          id: string
+          location_preference: Database["public"]["Enums"]["location_type"]
+          project_id: string
+          time_commitment: Database["public"]["Enums"]["commitment_type"]
+          timezone_overlap_min: number
+          vesting_schedule: string
+        }
+        Insert: {
+          equity_range_offered?: string
+          id?: string
+          location_preference?: Database["public"]["Enums"]["location_type"]
+          project_id: string
+          time_commitment?: Database["public"]["Enums"]["commitment_type"]
+          timezone_overlap_min?: number
+          vesting_schedule?: string
+        }
+        Update: {
+          equity_range_offered?: string
+          id?: string
+          location_preference?: Database["public"]["Enums"]["location_type"]
+          project_id?: string
+          time_commitment?: Database["public"]["Enums"]["commitment_type"]
+          timezone_overlap_min?: number
+          vesting_schedule?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cofounder_alignment_matrix_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "cofounder_alignment_matrix_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commitment_checklists: {
+        Row: {
+          ip_assignment: boolean
+          request_id: string
+          time_commitment: boolean
+          user_id: string
+          vesting: boolean
+        }
+        Insert: {
+          ip_assignment?: boolean
+          request_id: string
+          time_commitment?: boolean
+          user_id: string
+          vesting?: boolean
+        }
+        Update: {
+          ip_assignment?: boolean
+          request_id?: string
+          time_commitment?: boolean
+          user_id?: string
+          vesting?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commitment_checklists_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "connect_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commitment_checklists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connect_requests: {
         Row: {
           applicant_id: string
@@ -71,6 +236,202 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ecosystem_activity: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: number
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: never
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: never
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ecosystem_activity_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "ecosystem_activity_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ecosystem_job_items: {
+        Row: {
+          completed_at: string
+          item_key: string
+          job_name: string
+        }
+        Insert: {
+          completed_at?: string
+          item_key: string
+          job_name: string
+        }
+        Update: {
+          completed_at?: string
+          item_key?: string
+          job_name?: string
+        }
+        Relationships: []
+      }
+      ecosystem_job_state: {
+        Row: {
+          lease_until: string | null
+          name: string
+          pause_reason: string | null
+          paused: boolean
+          updated_at: string
+        }
+        Insert: {
+          lease_until?: string | null
+          name: string
+          pause_reason?: string | null
+          paused?: boolean
+          updated_at?: string
+        }
+        Update: {
+          lease_until?: string | null
+          name?: string
+          pause_reason?: string | null
+          paused?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ecosystem_outbox: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          event_type: string
+          id: string
+          last_error: string | null
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          last_error?: string | null
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ecosystem_outbox_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "connect_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ecosystem_outbox_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_settings: {
+        Row: {
+          access_token_encrypted: string | null
+          enabled: boolean
+          id: string
+          provider: Database["public"]["Enums"]["integration_provider"]
+          settings_json: Json
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          enabled?: boolean
+          id?: string
+          provider: Database["public"]["Enums"]["integration_provider"]
+          settings_json?: Json
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          enabled?: boolean
+          id?: string
+          provider?: Database["public"]["Enums"]["integration_provider"]
+          settings_json?: Json
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_feedback_loops: {
+        Row: {
+          connect_request_id: string
+          created_at: string
+          feedback_notes: string | null
+          id: string
+          owner_rating: number | null
+          pass_reason: Database["public"]["Enums"]["pass_reason_type"] | null
+        }
+        Insert: {
+          connect_request_id: string
+          created_at?: string
+          feedback_notes?: string | null
+          id?: string
+          owner_rating?: number | null
+          pass_reason?: Database["public"]["Enums"]["pass_reason_type"] | null
+        }
+        Update: {
+          connect_request_id?: string
+          created_at?: string
+          feedback_notes?: string | null
+          id?: string
+          owner_rating?: number | null
+          pass_reason?: Database["public"]["Enums"]["pass_reason_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_feedback_loops_connect_request_id_fkey"
+            columns: ["connect_request_id"]
+            isOneToOne: true
+            referencedRelation: "connect_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -151,6 +512,7 @@ export type Database = {
           github_handle: string | null
           github_stats: Json | null
           id: string
+          is_demo: boolean
           primary_link: string | null
           reputation_score: number
           skills: string[]
@@ -164,6 +526,7 @@ export type Database = {
           github_handle?: string | null
           github_stats?: Json | null
           id: string
+          is_demo?: boolean
           primary_link?: string | null
           reputation_score?: number
           skills?: string[]
@@ -177,6 +540,7 @@ export type Database = {
           github_handle?: string | null
           github_stats?: Json | null
           id?: string
+          is_demo?: boolean
           primary_link?: string | null
           reputation_score?: number
           skills?: string[]
@@ -311,6 +675,7 @@ export type Database = {
           entity_type: Database["public"]["Enums"]["entity_type"]
           id: string
           incentive: Database["public"]["Enums"]["incentive_type"]
+          is_demo: boolean
           looking_for: string
           stage: Database["public"]["Enums"]["project_stage"]
           tagline: string
@@ -324,6 +689,7 @@ export type Database = {
           entity_type: Database["public"]["Enums"]["entity_type"]
           id?: string
           incentive: Database["public"]["Enums"]["incentive_type"]
+          is_demo?: boolean
           looking_for: string
           stage: Database["public"]["Enums"]["project_stage"]
           tagline: string
@@ -337,6 +703,7 @@ export type Database = {
           entity_type?: Database["public"]["Enums"]["entity_type"]
           id?: string
           incentive?: Database["public"]["Enums"]["incentive_type"]
+          is_demo?: boolean
           looking_for?: string
           stage?: Database["public"]["Enums"]["project_stage"]
           tagline?: string
@@ -416,6 +783,7 @@ export type Database = {
           request_id: string
         }[]
       }
+      acquire_ecosystem_job: { Args: { _name: string }; Returns: boolean }
       applicant_semantic_scores: {
         Args: never
         Returns: {
@@ -423,6 +791,15 @@ export type Database = {
           project_id: string
           similarity: number
         }[]
+      }
+      decline_with_feedback: {
+        Args: {
+          _notes?: string
+          _rating?: number
+          _reason: Database["public"]["Enums"]["pass_reason_type"]
+          _request_id: string
+        }
+        Returns: undefined
       }
       get_applicant_contact: { Args: { _request_id: string }; Returns: string }
       get_handshake: {
@@ -437,6 +814,11 @@ export type Database = {
         }[]
       }
       get_my_contact: { Args: never; Returns: string }
+      instant_apply: { Args: { _project_id: string }; Returns: string }
+      invite_builder: {
+        Args: { _builder_id: string; _project_id: string }
+        Returns: string
+      }
       my_semantic_scores: {
         Args: never
         Returns: {
@@ -460,6 +842,7 @@ export type Database = {
           entity_type: Database["public"]["Enums"]["entity_type"]
           id: string
           incentive: Database["public"]["Enums"]["incentive_type"]
+          is_demo: boolean
           looking_for: string
           stage: Database["public"]["Enums"]["project_stage"]
           tagline: string
@@ -473,6 +856,14 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      read_integration_secret: {
+        Args: {
+          _key: string
+          _provider: Database["public"]["Enums"]["integration_provider"]
+          _uid: string
+        }
+        Returns: string
       }
       recommend_builders: {
         Args: { _project_id: string }
@@ -489,6 +880,15 @@ export type Database = {
         }[]
       }
       refresh_reputation: { Args: { _uid: string }; Returns: undefined }
+      store_integration_secret: {
+        Args: {
+          _key: string
+          _plaintext: string
+          _provider: Database["public"]["Enums"]["integration_provider"]
+          _uid: string
+        }
+        Returns: undefined
+      }
       track_project_events: {
         Args: {
           _project_ids: string[]
@@ -496,14 +896,41 @@ export type Database = {
         }
         Returns: undefined
       }
+      weekly_builder_matches: {
+        Args: { _uid: string }
+        Returns: {
+          project_id: string
+          score: number
+          title: string
+        }[]
+      }
     }
     Enums: {
+      commitment_type:
+        | "Side Project (<10h/wk)"
+        | "Part-Time (10-20h/wk)"
+        | "Full-Time Co-Founder"
       entity_type: "Solo Founder" | "Early Team" | "Company"
       incentive_type: "Equity" | "Paid" | "Equity + Paid" | "Open Source"
+      integration_provider:
+        | "slack"
+        | "linear"
+        | "notion"
+        | "github"
+        | "discord"
+        | "telegram"
+      location_type: "Remote-Only" | "Hybrid" | "On-Site"
       notification_type:
         | "new_connect_request"
         | "request_accepted"
         | "request_declined"
+      pass_reason_type:
+        | "stack_mismatch"
+        | "overqualified"
+        | "underqualified"
+        | "time_commitment"
+        | "no_response"
+        | "position_filled"
       project_category: "AI/ML" | "SaaS" | "DevTools" | "Web3"
       project_event_type: "impression" | "click" | "reveal"
       project_stage: "Idea" | "Prototype" | "Live Revenue" | "Funded"
@@ -637,12 +1064,34 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      commitment_type: [
+        "Side Project (<10h/wk)",
+        "Part-Time (10-20h/wk)",
+        "Full-Time Co-Founder",
+      ],
       entity_type: ["Solo Founder", "Early Team", "Company"],
       incentive_type: ["Equity", "Paid", "Equity + Paid", "Open Source"],
+      integration_provider: [
+        "slack",
+        "linear",
+        "notion",
+        "github",
+        "discord",
+        "telegram",
+      ],
+      location_type: ["Remote-Only", "Hybrid", "On-Site"],
       notification_type: [
         "new_connect_request",
         "request_accepted",
         "request_declined",
+      ],
+      pass_reason_type: [
+        "stack_mismatch",
+        "overqualified",
+        "underqualified",
+        "time_commitment",
+        "no_response",
+        "position_filled",
       ],
       project_category: ["AI/ML", "SaaS", "DevTools", "Web3"],
       project_event_type: ["impression", "click", "reveal"],
