@@ -1,0 +1,43 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ArrowLeft, Github, Workflow, Send, Zap, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { integrationOptionsFn,saveIntegrationRouting,saveBuilderPreferences } from "@/lib/ecosystem.functions";
+
+const options=(userId:string)=>queryOptions({queryKey:["ecosystem-settings",userId],queryFn:()=>integrationOptionsFn()});
+export const Route=createFileRoute("/_authenticated/dashboard/integrations")({
+ loader:({context})=>context.queryClient.ensureQueryData(options(context.user.id)),
+ head:()=>({meta:[{title:"Ecosystem Integrations — Slyk"},{name:"description",content:"Manage Slyk application routing, weekly matches, and your Master Pitch."},{property:"og:title",content:"Ecosystem Integrations — Slyk"},{property:"og:description",content:"Your developer ecosystem, notification routes, and application preferences."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),
+ component:Integrations,
+});
+const PROVIDERS=[{id:"slack",name:"Slack",caption:"Workspace alerts"},{id:"linear",name:"Linear",caption:"Candidate issues"},{id:"notion",name:"Notion",caption:"Candidate database"},{id:"github",name:"GitHub",caption:"Deep work evidence"},{id:"discord",name:"Discord",caption:"Webhook delivery"},{id:"telegram",name:"Telegram",caption:"Bot alerts"}] as const;
+function Integrations(){
+ const{user}=Route.useRouteContext();const qc=useQueryClient(),key=["ecosystem-settings",user.id];const{data}=useSuspenseQuery(options(user.id));
+ const saveRouting=useServerFn(saveIntegrationRouting),savePreferences=useServerFn(saveBuilderPreferences);
+ const [draft,setDraft]=useState<{master_pitch:string;master_role:string;available:boolean;weekly_digest:boolean}|null>(null);
+ const pref=draft??{master_pitch:data.preferences?.master_pitch??"",master_role:data.preferences?.master_role??"",available:data.preferences?.available??true,weekly_digest:data.preferences?.weekly_digest??false};
+ const mutation=useMutation({mutationFn:saveRouting,onMutate:async({data:d})=>{await qc.cancelQueries({queryKey:key});const prev=qc.getQueryData<typeof data>(key);qc.setQueryData<typeof data>(key,old=>old?{...old,integrations:old.integrations.map(i=>i.provider===d.provider?{...i,enabled:d.enabled,settings_json:{min_score:d.min_score,event:d.event}}:i)}:old);return{prev};},onError:(e,_v,c)=>{if(c?.prev)qc.setQueryData(key,c.prev);toast.error(e.message);},onSuccess:()=>{toast.success("Routing saved");qc.invalidateQueries({queryKey:key});}});
+ async function save(e:React.FormEvent){e.preventDefault();try{await savePreferences({data:pref});toast.success("Builder preferences saved");setDraft(null);qc.invalidateQueries({queryKey:key});qc.invalidateQueries({queryKey:["power-preferences"]});}catch(e){toast.error(e instanceof Error?e.message:"Save failed");}}
+ return <main className="mx-auto max-w-6xl px-4 py-8"><Button asChild size="sm" variant="ghost"><Link to="/dashboard"><ArrowLeft/>Dashboard</Link></Button>
+ <div className="mt-5 flex flex-wrap items-start justify-between gap-4"><div><div className="font-mono text-xs uppercase text-primary">Ecosystem / control plane</div><h1 className="mt-2 text-3xl font-semibold">Integrations & automation</h1></div><Badge variant="outline" className="gap-2"><ShieldCheck className="h-3 w-3"/>Credentials encrypted at rest</Badge></div>
+ <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]"><div><h2 className="mb-3 flex items-center gap-2 text-sm font-medium"><Workflow className="h-4 w-4"/>Application routes</h2><div className="divide-y border-y">{PROVIDERS.map(p=>{const row=data.integrations.find(i=>i.provider===p.id);return <RoutingRow key={p.id} provider={p} row={row} onSave={d=>mutation.mutate({data:d})}/>;})}</div></div>
+ <aside className="space-y-6"><section className="space-y-3 border-b pb-6"><h2 className="flex items-center gap-2 text-sm font-medium"><Zap className="h-4 w-4 text-primary"/>Orchestration</h2><div className="flex justify-between text-sm"><span>Inngest</span><Badge variant="outline">{data.services.inngest?"Connected":"Setup required"}</Badge></div><div className="flex justify-between text-sm"><span>Resend</span><Badge variant="outline">{data.services.resend?"Connected":"Setup required"}</Badge></div><p className="text-xs text-muted-foreground">{data.services.sender?"Weekly sender configured":"Weekly delivery paused: a verified sender email is required."}</p><p className="text-xs text-muted-foreground">Scheduled jobs activate after publishing and syncing Slyk with Inngest.</p></section>
+ <form onSubmit={save} className="space-y-4"><h2 className="flex items-center gap-2 text-sm font-medium"><Send className="h-4 w-4"/>Builder power mode</h2><div><Label htmlFor="master-role">Primary role</Label><Input id="master-role" maxLength={80} value={pref.master_role} onChange={e=>setDraft({...pref,master_role:e.target.value})}/></div><div><Label htmlFor="master-pitch">Master Pitch</Label><Input id="master-pitch" maxLength={300} value={pref.master_pitch} onChange={e=>setDraft({...pref,master_pitch:e.target.value})}/></div><label className="flex items-center justify-between text-sm">Available for projects<Switch checked={pref.available} onCheckedChange={x=>setDraft({...pref,available:x})}/></label><label className="flex items-center justify-between text-sm">Weekly top 3 matches<Switch checked={pref.weekly_digest} onCheckedChange={x=>setDraft({...pref,weekly_digest:x})}/></label><Button type="submit" variant="outline" className="w-full">Save preferences</Button></form></aside></div></main>;
+}
+type RoutingData=Parameters<typeof saveIntegrationRouting>[0]["data"];
+function RoutingRow({provider,row,onSave}:{provider:typeof PROVIDERS[number];row?:Awaited<ReturnType<typeof integrationOptionsFn>>["integrations"][number];onSave:(d:RoutingData)=>void}){
+ const settings=row?.settings_json as {min_score?:number;event?:"pitch"|"accepted"}|undefined;
+ const [score,setScore]=useState(settings?.min_score??85),[event,setEvent]=useState<"pitch"|"accepted">(settings?.event??"pitch"),[webhook,setWebhook]=useState("");
+ const configured=!!row;const supported=provider.id==="discord";
+ return <section className="py-5"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><div className="grid h-9 w-9 place-items-center rounded-md border bg-muted font-mono text-sm">{provider.id==="github"?<Github className="h-4 w-4"/>:provider.name.slice(0,1)}</div><div><h3 className="text-sm font-medium">{provider.name}</h3><p className="text-xs text-muted-foreground">{provider.caption}</p></div></div><Switch aria-label={`Enable ${provider.name}`} checked={row?.enabled??false} disabled={!configured||!supported} onCheckedChange={enabled=>onSave({provider:provider.id,enabled,min_score:score,event})}/></div>
+ {!supported?<div className="mt-3 text-xs text-muted-foreground">{provider.id==="telegram"?"Telegram bot connection required.":"Workspace account connection setup required."}</div>:<div className="mt-4 grid gap-3 sm:grid-cols-[1fr_110px_140px_auto]"><Input aria-label="Discord webhook URL" type="password" value={webhook} onChange={e=>setWebhook(e.target.value)} placeholder={configured?"Replace webhook (optional)":"Discord webhook URL"}/><Input aria-label="Minimum match score" type="number" min={0} max={100} value={score} onChange={e=>setScore(Number(e.target.value))}/><Select value={event} onValueChange={v=>setEvent(v==="accepted"?"accepted":"pitch")}><SelectTrigger aria-label="Application event"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="pitch">New pitch</SelectItem><SelectItem value="accepted">Accepted</SelectItem></SelectContent></Select><Button size="sm" variant="outline" onClick={()=>{onSave({provider:provider.id,enabled:true,min_score:score,event,webhook:webhook||undefined});setWebhook("");}}>Save route</Button></div>}
+ </section>;
+}
