@@ -15,6 +15,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { syncGithub, verifyProof } from "@/lib/builder.functions";
 import { useRefreshEmbeddings } from "@/hooks/use-slyk-data";
+import { AlignmentEditor, CommitmentChecklist } from "@/components/AlignmentTools";
+import { FEEDBACK } from "@/lib/ecosystem";
+import { BuilderEvidence, type EvidenceBuilder } from "@/components/BuilderEvidence";
 import {
   PROFILE_COLS, PROOF_LABELS, PROOF_TYPES, applicantRank, contactLauncher, matchScore, pitchQuality, simToPct,
   type Launcher, type Project, type Proof,
@@ -92,7 +95,7 @@ function Dashboard() {
     <main className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">Slyk Dashboard</h1>
-        <Button asChild variant="outline" size="sm"><Link to="/analytics"><BarChart3 /> Analytics</Link></Button>
+        <div className="flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/dashboard/integrations">Integrations</Link></Button><Button asChild variant="outline" size="sm"><Link to="/analytics"><BarChart3 /> Analytics</Link></Button></div>
       </div>
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v as (typeof TABS)[number] }, replace: true })} className="mt-6">
         <TabsList className="flex-wrap">
@@ -144,10 +147,11 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
   const qc = useQueryClient();
   const [filter, setFilter] = useState<Filter>("pending");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [evidence,setEvidence]=useState<EvidenceBuilder|null>(null);
   const key = ["inbound", userId];
 
   const decide = useMutation({
-    mutationFn: async ({ ids, status }: { ids: string[]; status: "accepted" | "declined" }) => {
+    mutationFn: async ({ ids, status, reason }: { ids: string[]; status: "accepted" | "declined"; reason?: (typeof FEEDBACK)[number]["value"] }) => {
       const handshakes: Handshake[] = [];
       for (const id of ids) {
         if (status === "accepted") {
@@ -155,7 +159,7 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
           if (error) throw error;
           if (data?.[0]) handshakes.push(data[0] as Handshake);
         } else {
-          const { error } = await supabase.from("connect_requests").update({ status }).eq("id", id);
+          const { error } = reason ? await supabase.rpc("decline_with_feedback",{_request_id:id,_reason:reason}) : await supabase.from("connect_requests").update({ status }).eq("id", id);
           if (error) throw error;
         }
       }
@@ -217,7 +221,7 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
               {filter === "pending" || filter === "filtered" ? <Checkbox className="mt-1" checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} aria-label="Select pitch" /> : <span />}
               <div className="min-w-0 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{r.applicant?.full_name ?? "Builder"}</span>
+                  <Button size="sm" variant="ghost" className="h-auto px-0" onClick={()=>{const a=r.applicant as (Applicant&{github_stats?:EvidenceBuilder["github_stats"];is_demo?:boolean})|undefined;if(a)setEvidence({...a,github_stats:a.github_stats??null});}}>{r.applicant?.full_name ?? "Builder"}</Button>
                   {r.applicant?.verification_status === "top_builder" && <Badge className="gap-1"><ShieldCheck className="h-3 w-3" /> Top Builder</Badge>}
                   {r.applicant?.verification_status === "github_verified" && <Badge variant="outline" className="gap-1"><Github className="h-3 w-3" /> GitHub linked</Badge>}
                   <Badge variant="secondary">{r.role_offered}</Badge>
@@ -241,20 +245,22 @@ function Inbox({ userId, loading, reqs, hasProjects }: { userId: string; loading
                   <>
                     <Button size="sm" onClick={() => decide.mutate({ ids: [r.id], status: "accepted" })}>Accept</Button>
                     <Button size="sm" variant="outline" onClick={() => decide.mutate({ ids: [r.id], status: "declined" })}>Decline</Button>
+                    <Select value="" onValueChange={reason=>{const choice=FEEDBACK.find(f=>f.value===reason);if(choice)decide.mutate({ids:[r.id],status:"declined",reason:choice.value});}}><SelectTrigger className="h-8 w-36" aria-label="Decline with feedback"><SelectValue placeholder="Quick feedback"/></SelectTrigger><SelectContent>{FEEDBACK.map(f=><SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent></Select>
                   </>
                 )}
                 {r.status === "declined" && <Badge variant="outline" className="text-muted-foreground">Archived</Badge>}
-                {r.status === "accepted" && <HandshakeCard requestId={r.id} side="owner" />}
+                {r.status === "accepted" && <HandshakeCard requestId={r.id} side="owner" userId={userId} />}
               </div>
             </div>
           ))}
         </div>
       )}
+      <BuilderEvidence builder={evidence} onClose={()=>setEvidence(null)}/>
     </div>
   );
 }
 
-function HandshakeCard({ requestId, side }: { requestId: string; side: "owner" | "applicant" }) {
+function HandshakeCard({ requestId, side, userId }: { requestId: string; side: "owner" | "applicant"; userId:string }) {
   const hs = useQuery({
     queryKey: ["handshake", requestId],
     queryFn: async () => {
@@ -275,6 +281,7 @@ function HandshakeCard({ requestId, side }: { requestId: string; side: "owner" |
       <div className="flex items-center gap-1 text-xs font-medium text-success"><Check className="h-3 w-3" /> Contact Details Shared</div>
       <div className="mt-0.5 font-mono text-xs">{contact || "No contact provided yet"}</div>
       {launcher && <div className="mt-2"><LauncherButton l={launcher} /></div>}
+      <CommitmentChecklist requestId={requestId} userId={userId} project={h.project_title}/>
     </div>
   );
 }
@@ -301,7 +308,7 @@ function MyPitches({ userId }: { userId: string }) {
             <Link to="/p/$id" params={{ id: r.project_id }} className="font-medium hover:underline">{r.title}</Link>
             <p className="text-sm text-muted-foreground">{r.role_offered} · “{r.pitch_sentence}”</p>
           </div>
-          {r.status === "accepted" ? <HandshakeCard requestId={r.id} side="applicant" /> :
+          {r.status === "accepted" ? <HandshakeCard requestId={r.id} side="applicant" userId={userId} /> :
             <Badge variant="outline" className={r.status === "declined" ? "text-muted-foreground" : ""}>{r.status === "declined" ? "Declined" : "Pending"}</Badge>}
         </div>
       ))}
@@ -402,6 +409,7 @@ function ProjectPanel({ p }: { p: Project }) {
           ))}
         </div>
       </div>
+      {p.incentive.includes("Equity")&&<div className="px-4 pb-4"><AlignmentEditor project={p}/></div>}
     </section>
   );
 }

@@ -8,7 +8,7 @@ export const INCENTIVES = ["Equity", "Paid", "Equity + Paid", "Open Source"] as 
 export const SORTS = ["recent", "match", "comp"] as const;
 export type Sort = (typeof SORTS)[number];
 // Never include direct_contact here — it is not granted to clients.
-export const PROFILE_COLS = "id, full_name, avatar_url, primary_link, skills, github_handle, github_stats, verification_status, reputation_score";
+export const PROFILE_COLS = "id, full_name, avatar_url, primary_link, skills, github_handle, github_stats, verification_status, reputation_score, is_demo";
 
 export type FeedFilters = { q: string; category: string; stage: string; incentive: string };
 
