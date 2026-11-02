@@ -1,0 +1,9 @@
+import {describe,it,expect} from "vitest";
+import {alignmentSchema,eligibleInstantApply,routeQualifies,equityEstimate,commitmentText} from "@/lib/ecosystem";
+describe("Phase 4 rules",()=>{
+ it("only verified top builders may instant apply",()=>{expect(eligibleInstantApply("top_builder",false,"I ship PyTorch systems for production.","ML Engineer")).toBe(true);expect(eligibleInstantApply("github_verified",false,"I ship PyTorch systems for production.","ML Engineer")).toBe(false);expect(eligibleInstantApply("top_builder",true,"I ship PyTorch systems for production.","ML Engineer")).toBe(false);});
+ it("routing above 85 percent excludes 85 and includes 86",()=>{expect(routeQualifies(85,85)).toBe(false);expect(routeQualifies(86,85)).toBe(true);expect(routeQualifies(null,85)).toBe(false);});
+ it("ratings and alignment accept the requested four-hour overlap",()=>{const v={project_id:"00000000-0000-4000-8000-000000000001",equity_range_offered:"5% - 15%",vesting_schedule:"4 years, 1-year cliff",time_commitment:"Part-Time (10-20h/wk)",location_preference:"Remote-Only",timezone_overlap_min:4};expect(alignmentSchema.parse(v).timezone_overlap_min).toBe(4);expect(alignmentSchema.safeParse({...v,timezone_overlap_min:25}).success).toBe(false);});
+ it("equity estimate responds to stage, funding, hours and expertise",()=>{expect(equityEstimate("Idea",false,40,5)).toEqual({low:35,high:49});expect(equityEstimate("Idea",true,20,3).high).toBeLessThan(equityEstimate("Idea",false,40,5).high);});
+ it("handoff includes all three commitments without internal chat",()=>{const text=commitmentText("Alpha",{vesting:true,ip_assignment:false,time_commitment:false});expect(text).toContain("[x] Vesting");expect(text).toContain("[ ] IP assignment");expect(text).toContain("[ ] Time commitment");expect(text).toContain("Email, Telegram, or Calendly");});
+});
