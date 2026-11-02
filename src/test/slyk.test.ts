@@ -3,7 +3,7 @@ import { contactLauncher, filterProjects, matchScore, sortProjects, type Project
 
 const p = (o: Partial<Project>): Project => ({
   id: "1", created_at: "2026-01-01", user_id: null, title: "Alpha", tagline: "", category: "AI/ML", stage: "Idea",
-  entity_type: "Solo Founder", looking_for: "", incentive: "Equity", tech_stack: [], ...o,
+  entity_type: "Solo Founder", looking_for: "", incentive: "Equity", tech_stack: [], is_demo: false, ...o,
 });
 const all = { q: "", category: "all", stage: "all", incentive: "all" };
 
