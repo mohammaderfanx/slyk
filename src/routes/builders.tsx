@@ -1,78 +1,31 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { ExternalLink, Github, Search, ShieldCheck } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { Search, ShieldCheck, LayoutGrid, Rows3, Send } from "lucide-react";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
+import { ToggleGroup,ToggleGroupItem } from "@/components/ui/toggle-group";
+import { BuilderEvidence,type EvidenceBuilder } from "@/components/BuilderEvidence";
 import { supabase } from "@/integrations/supabase/client";
-import { fuzzy } from "@/lib/slyk";
-
-export const Route = createFileRoute("/builders")({
-  validateSearch: z.object({ q: z.string().optional().catch(undefined) }),
-  head: () => ({
-    meta: [
-      { title: "Builders — Slyk" },
-      { name: "description", content: "Search AI/ML engineers and developers on Slyk by tech stack and reputation." },
-      { property: "og:title", content: "Builders — Slyk" },
-      { property: "og:description", content: "Search AI/ML engineers and developers on Slyk by tech stack and reputation." },
-    ],
-  }),
-  component: Builders,
-});
-
-function Builders() {
-  const { q = "" } = Route.useSearch();
-  const navigate = useNavigate({ from: "/builders" });
-  const list = useQuery({
-    queryKey: ["builders"],
-    queryFn: async () => {
-      // Public columns only — direct_contact is never selectable by clients
-      const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, primary_link, skills, github_handle, verification_status, reputation_score, github_stats")
-        .not("skills", "eq", "{}").order("reputation_score", { ascending: false }).limit(200);
-      if (error) throw error;
-      return data;
-    },
-  });
-  const filtered = useMemo(() => {
-    const terms = q.trim().split(/\s+/).filter(Boolean);
-    return (list.data ?? []).filter((b) => terms.every((t) => [b.full_name ?? "", ...b.skills].some((x) => fuzzy(x, t))));
-  }, [list.data, q]);
-
-  return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Builders</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Ranked by reputation. Contact details are shared only after a pitch is accepted.</p>
-      <div className="relative mt-6">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input className="pl-9" placeholder="Search by stack, e.g. PyTorch" value={q} onChange={(e) => navigate({ search: { q: e.target.value || undefined }, replace: true })} />
-      </div>
-      {list.isLoading ? <p className="mt-6 text-muted-foreground">Loading…</p> : !filtered.length ? (
-        <p className="mt-6 rounded-lg border border-dashed p-10 text-center text-muted-foreground">No builders match.</p>
-      ) : (
-        <div className="mt-6 grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2">
-          {filtered.map((b) => {
-            const stats = b.github_stats as { total_stars?: number; public_repos?: number } | null;
-            return (
-              <div key={b.id} className="flex flex-col gap-2 bg-card p-5">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{b.full_name ?? "Builder"}</span>
-                  {b.verification_status === "top_builder" && <Badge className="gap-1"><ShieldCheck className="h-3 w-3" /> Top Builder</Badge>}
-                  {b.verification_status === "github_verified" && <Badge variant="outline" className="gap-1"><Github className="h-3 w-3" /> GitHub linked</Badge>}
-                  <span className="ml-auto font-mono text-xs text-primary">rep {b.reputation_score}</span>
-                </div>
-                <div className="flex flex-wrap gap-1">{b.skills.map((s) => <span key={s} className="rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">{s}</span>)}</div>
-                <div className="mt-auto flex items-center justify-between pt-2 font-mono text-[11px] text-muted-foreground">
-                  <span>{stats ? `${stats.public_repos ?? 0} repos · ★ ${stats.total_stars ?? 0}` : "No GitHub linked"}</span>
-                  {b.primary_link && <Button asChild size="sm" variant="ghost"><a href={b.primary_link} target="_blank" rel="noreferrer"><ExternalLink /> Profile</a></Button>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </main>
-  );
+import { useAuth } from "@/hooks/use-auth";
+import { fuzzy,PROFILE_COLS } from "@/lib/slyk";
+export const Route=createFileRoute("/builders")({validateSearch:z.object({q:z.string().max(200).optional().catch(undefined),tier:z.enum(["all","top_builder","github_verified"]).optional().catch(undefined),view:z.enum(["grid","table"]).optional().catch(undefined)}),head:()=>({meta:[{title:"Builder Discovery — Slyk"},{name:"description",content:"Discover available engineers and co-founders by stack, public work evidence, and reputation."},{property:"og:title",content:"Builder Discovery — Slyk"},{property:"og:description",content:"Find engineers with proven work and invite top builders to verified projects."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),component:Builders});
+function Builders(){
+ const{q="",tier="all",view="grid"}=Route.useSearch(),navigate=useNavigate({from:"/builders"}),{user}=useAuth(),qc=useQueryClient();
+ const[evidence,setEvidence]=useState<EvidenceBuilder|null>(null),[project,setProject]=useState("");
+ const list=useQuery({queryKey:["builders"],queryFn:async()=>{const[{data,error},{data:available,error:availabilityError}]=await Promise.all([supabase.from("profiles").select(PROFILE_COLS).not("skills","eq","{}").order("reputation_score",{ascending:false}).limit(200),supabase.rpc("available_builders")]);if(error)throw error;if(availabilityError)throw availabilityError;const ids=new Set((available??[]).map(b=>b.id));return(data??[]).filter(b=>ids.has(b.id));}});
+ const owned=useQuery({queryKey:["invite-projects",user?.id],enabled:!!user,queryFn:async()=>{if(!user)return[];const{data,error}=await supabase.from("projects").select("id,title").eq("user_id",user.id).eq("is_demo",false);if(error)throw error;const{data:proofs}=await supabase.from("project_proofs").select("project_id").eq("verified",true);const ids=new Set(proofs?.map(p=>p.project_id));return(data??[]).filter(p=>ids.has(p.id));}});
+ const invited=useQuery({queryKey:["invited",project],enabled:!!project,queryFn:async()=>{const{data,error}=await supabase.from("builder_invites").select("builder_id").eq("project_id",project);if(error)throw error;return(data??[]).map(x=>x.builder_id);}});
+ const filtered=useMemo(()=>{const terms=q.trim().split(/\s+/).filter(Boolean);return(list.data??[]).filter(b=>(tier==="all"||b.verification_status===tier)&&terms.every(t=>[b.full_name??"",...b.skills].some(x=>fuzzy(x,t))));},[list.data,q,tier]);
+ async function invite(id:string){if(!project)return;const key=["invited",project],prev=qc.getQueryData<string[]>(key)??[];qc.setQueryData(key,[...prev,id]);const{error}=await supabase.rpc("invite_builder",{_project_id:project,_builder_id:id});if(error){qc.setQueryData(key,prev);toast.error(error.message);}else toast.success("Invitation sent");}
+ const change=(patch:{q?:string;tier?:"all"|"top_builder"|"github_verified";view?:"grid"|"table"})=>navigate({search:prev=>({...prev,...patch}),replace:true});
+ return <main className="mx-auto max-w-6xl px-4 py-8"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs uppercase text-primary">Builder discovery / available talent</p><h1 className="mt-2 text-3xl font-semibold">Builders</h1></div><span className="font-mono text-xs text-muted-foreground">{filtered.length} builders</span></div>
+ <div className="mt-6 flex flex-wrap gap-2"><div className="relative min-w-48 flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground"/><Input aria-label="Search builders" className="pl-9" placeholder="Search stack or builder" value={q} onChange={e=>change({q:e.target.value})}/></div><Select value={tier} onValueChange={v=>change({tier:v==="top_builder"?v:v==="github_verified"?v:"all"})}><SelectTrigger className="w-40"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="all">All builders</SelectItem><SelectItem value="top_builder">Top builders</SelectItem><SelectItem value="github_verified">GitHub linked</SelectItem></SelectContent></Select><ToggleGroup type="single" variant="outline" value={view} onValueChange={v=>v&&change({view:v==="table"?"table":"grid"})}><ToggleGroupItem value="grid" aria-label="Builder grid"><LayoutGrid/></ToggleGroupItem><ToggleGroupItem value="table" aria-label="Builder table"><Rows3/></ToggleGroupItem></ToggleGroup></div>
+ {user&&<div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">{owned.data?.length?<><span>Invite to</span><Select value={project} onValueChange={setProject}><SelectTrigger className="w-64"><SelectValue placeholder="Choose verified listing"/></SelectTrigger><SelectContent>{owned.data.map(p=><SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></>:<span>No verified listing available for invitations.</span>}</div>}
+ {list.isError?<p className="mt-6 text-destructive">Couldn't load builders.</p>:list.isLoading?<p className="mt-6 text-muted-foreground">Loading builders…</p>:<div className={`mt-6 overflow-hidden rounded-lg border ${view==="grid"?"grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3":"divide-y"}`}>{filtered.map(b=>{const s=b.github_stats as {public_repos?:number;total_stars?:number}|null,sent=invited.data?.includes(b.id);return <article key={b.id} className={`bg-card p-4 ${view==="table"?"grid gap-3 md:grid-cols-[1fr_1.2fr_140px_180px] md:items-center":"flex flex-col gap-3"}`}><div className="min-w-0"><Button size="sm" variant="ghost" className="h-auto px-0 text-sm" onClick={()=>setEvidence(b)}>{b.full_name??"Builder"}</Button><div className="mt-1 flex flex-wrap gap-1">{b.is_demo?<Badge variant="outline">Sample</Badge>:b.verification_status==="top_builder"?<Badge className="gap-1"><ShieldCheck className="h-3 w-3"/>Top Builder</Badge>:<Badge variant="outline">{b.verification_status==="github_verified"?"GitHub linked":"Unverified"}</Badge>}<span className="font-mono text-xs text-primary">rep {b.reputation_score}</span></div></div><div className="flex flex-wrap gap-1">{b.skills.slice(0,6).map(x=><Badge variant="secondary" key={x} className="font-mono text-[11px]">{x}</Badge>)}</div><div className="font-mono text-[11px] text-muted-foreground">{s?.public_repos??0} repos · ★ {s?.total_stars??0}</div><div className="mt-auto flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={()=>setEvidence(b)}>Work evidence</Button>{b.verification_status==="top_builder"&&!b.is_demo&&user&&<Button size="sm" disabled={!project||sent} onClick={()=>void invite(b.id)}><Send/>{sent?"Invited":"Invite to Pitch"}</Button>}</div></article>;})}</div>}
+ {!list.isLoading&&!filtered.length&&<p className="py-12 text-center text-muted-foreground">No available builders match.</p>}<BuilderEvidence builder={evidence} onClose={()=>setEvidence(null)}/></main>;
 }

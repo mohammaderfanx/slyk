@@ -43,6 +43,13 @@
       "when": 1793552125358,
       "tag": "0005_phase4_ecosystem",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793693672735,
+      "tag": "0006_phase4_public_badge_scores",
+      "breakpoints": true
     }
   ]
 }

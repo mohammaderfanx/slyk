@@ -10,29 +10,12 @@ export const syncGithub = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ handle: z.string().trim().regex(/^[A-Za-z0-9-]{1,39}$/, "Invalid GitHub username") }).parse(d))
   .handler(async ({ data, context }) => {
-    const userRes = await fetch(`${GH}/users/${data.handle}`, { headers: ghHeaders });
-    if (userRes.status === 404) throw new Error("GitHub user not found");
-    if (!userRes.ok) throw new Error(`GitHub is unavailable right now (${userRes.status}). Try again later.`);
-    const user = (await userRes.json()) as { public_repos: number; login: string };
-    const reposRes = await fetch(`${GH}/users/${data.handle}/repos?per_page=100&sort=pushed`, { headers: ghHeaders });
-    const repos = reposRes.ok ? ((await reposRes.json()) as { stargazers_count: number; language: string | null; fork: boolean; pushed_at: string }[]) : [];
-    const own = repos.filter((r) => !r.fork);
-    const langs: Record<string, number> = {};
-    for (const r of own) if (r.language) langs[r.language] = (langs[r.language] ?? 0) + 1;
-    // Recent activity proxy: distinct days with pushes in last 30 days
-    const cutoff = Date.now() - 30 * 864e5;
-    const activeDays = new Set(own.filter((r) => Date.parse(r.pushed_at) > cutoff).map((r) => r.pushed_at.slice(0, 10))).size;
-    const stats = {
-      public_repos: user.public_repos,
-      total_stars: own.reduce((a, r) => a + r.stargazers_count, 0),
-      primary_languages: Object.entries(langs).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([l]) => l),
-      active_days_30d: activeDays,
-      synced_at: new Date().toISOString(),
-    };
+    const { publicGithubEvidence } = await import("./github-evidence.server");
+    const {login,stats}=await publicGithubEvidence(data.handle);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: taken } = await supabaseAdmin.from("profiles").select("id").eq("github_handle", user.login).neq("id", context.userId).maybeSingle();
+    const { data: taken } = await supabaseAdmin.from("profiles").select("id").eq("github_handle", login).neq("id", context.userId).maybeSingle();
     if (taken) throw new Error("That GitHub account is already linked to another Slyk profile.");
-    const { error } = await supabaseAdmin.from("profiles").update({ github_handle: user.login, github_stats: stats }).eq("id", context.userId);
+    const { error } = await supabaseAdmin.from("profiles").update({ github_handle: login, github_stats: stats }).eq("id", context.userId);
     if (error) throw new Error(error.message);
     await supabaseAdmin.rpc("refresh_reputation", { _uid: context.userId });
     return stats;
