@@ -792,6 +792,12 @@ export type Database = {
           similarity: number
         }[]
       }
+      available_builders: {
+        Args: never
+        Returns: {
+          id: string
+        }[]
+      }
       decline_with_feedback: {
         Args: {
           _notes?: string
@@ -857,6 +863,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      public_project_badge: {
+        Args: { _project_id: string }
+        Returns: {
+          applicants: number
+          looking_for: string
+        }[]
+      }
       read_integration_secret: {
         Args: {
           _key: string
@@ -880,6 +893,7 @@ export type Database = {
         }[]
       }
       refresh_reputation: { Args: { _uid: string }; Returns: undefined }
+      routing_match_score: { Args: { _request_id: string }; Returns: number }
       store_integration_secret: {
         Args: {
           _key: string
