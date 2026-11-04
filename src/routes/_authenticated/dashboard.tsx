@@ -18,6 +18,7 @@ import { useRefreshEmbeddings } from "@/hooks/use-slyk-data";
 import { AlignmentEditor, CommitmentChecklist } from "@/components/AlignmentTools";
 import { FEEDBACK } from "@/lib/ecosystem";
 import { BuilderEvidence, type EvidenceBuilder } from "@/components/BuilderEvidence";
+import { getReadmeBadge } from "@/lib/ecosystem.functions";
 import {
   PROFILE_COLS, PROOF_LABELS, PROOF_TYPES, applicantRank, contactLauncher, matchScore, pitchQuality, simToPct,
   type Launcher, type Project, type Proof,
@@ -322,6 +323,8 @@ function MyPitches({ userId }: { userId: string }) {
 function ProjectPanel({ p }: { p: Project }) {
   const qc = useQueryClient();
   const verify = useServerFn(verifyProof);
+  const readme = useServerFn(getReadmeBadge);
+  async function copyBadge(){try{const text=await readme({data:{projectId:p.id}});await navigator.clipboard.writeText(text);toast.success("README badge copied");}catch(e){toast.error(e instanceof Error?e.message:"Copy failed");}}
   const [type, setType] = useState<string>("github_repo");
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
@@ -366,7 +369,7 @@ function ProjectPanel({ p }: { p: Project }) {
           <Link to="/p/$id" params={{ id: p.id }} className="font-medium hover:underline">{p.title}</Link>
           <div className="truncate text-sm text-muted-foreground">Looking for {p.looking_for}</div>
         </div>
-        <div className="flex gap-1.5"><Badge variant="secondary">{p.category}</Badge><Badge variant="outline">{p.stage}</Badge></div>
+        <div className="flex flex-wrap gap-1.5"><Button size="sm" variant="outline" onClick={()=>void copyBadge()}>Copy README badge</Button><Badge variant="secondary">{p.category}</Badge><Badge variant="outline">{p.stage}</Badge></div>
       </div>
       <div className="grid gap-6 p-4 md:grid-cols-2">
         <div className="space-y-3">

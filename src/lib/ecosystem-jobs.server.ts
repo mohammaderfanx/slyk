@@ -8,10 +8,10 @@ export function ecosystemHandler(){
  const signingKey=process.env["INNGEST_SIGNING_KEY"];
  if(!signingKey)throw new Error("Inngest signing is not configured");
  const client=new Inngest({id:"slyk-ecosystem",signingKey});
- const make=(id:string,cron:string,kind:"github"|"digest"|"routes"|"reengagement")=>client.createFunction({id,triggers:[{cron}],retries:0,concurrency:1},async({step})=>step.run(`bounded-${kind}`,()=>runJob(kind)));
- return serve({client,functions:[make("daily-github-proof","0 4 * * *","github"),make("weekly-matches","0 9 * * 1","digest"),make("application-routing","*/5 * * * *","routes"),make("weekly-reengagement","0 10 * * 4","reengagement")]});
+ const make=(id:string,cron:string,kind:"github"|"digest"|"routes"|"reengagement"|"matching")=>client.createFunction({id,triggers:[{cron}],retries:0,concurrency:1},async({step})=>step.run(`bounded-${kind}`,()=>runJob(kind)));
+ return serve({client,functions:[make("daily-github-proof","0 4 * * *","github"),make("daily-matchmaker","0 5 * * *","matching"),make("weekly-matches","0 9 * * 1","digest"),make("application-routing","*/5 * * * *","routes"),make("weekly-reengagement","0 10 * * 4","reengagement")]});
 }
-async function runJob(kind:"github"|"digest"|"routes"|"reengagement"){
+async function runJob(kind:"github"|"digest"|"routes"|"reengagement"|"matching"){
  const {supabaseAdmin:db}=await import("@/integrations/supabase/client.server");
  const {data:locked,error:lockError}=await db.rpc("acquire_ecosystem_job",{_name:kind});if(lockError)throw lockError;if(!locked)return{skipped:true};
  const period=new Date().toISOString().slice(0,10);
@@ -22,6 +22,9 @@ async function runJob(kind:"github"|"digest"|"routes"|"reengagement"){
    for(const p of data??[]){const key=`${period}:${p.id}`;const{data:done}=await db.from("ecosystem_job_items").select("item_key").eq("job_name",kind).eq("item_key",key).maybeSingle();if(done||!p.github_handle)continue;
     const{stats}=await publicGithubEvidence(p.github_handle);const{error}=await db.from("profiles").update({github_stats:stats}).eq("id",p.id);if(error)throw error;await db.rpc("refresh_reputation",{_uid:p.id});await mark(kind,key);processed++;
    }
+  }else if(kind==="matching"){
+   const{data,error}=await db.from("profile_embeddings").select("profile_id,updated_at").order("updated_at",{ascending:true}).limit(20);if(error)throw error;
+   for(const p of data??[]){const key=`${period}:${p.profile_id}`;const{data:done}=await db.from("ecosystem_job_items").select("item_key").eq("job_name",kind).eq("item_key",key).maybeSingle();if(done)continue;const{error}=await db.rpc("refresh_autonomous_matches",{_uid:p.profile_id});if(error)throw error;await mark(kind,key);processed++;}
   }else if(kind==="digest"){
    const from=process.env["SLYK_DIGEST_FROM"];if(!from)throw new Error("Weekly digest paused: verified sender email required.");
    const cutoff=new Date(Date.now()-6*864e5).toISOString();
