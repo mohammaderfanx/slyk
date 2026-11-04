@@ -12,6 +12,7 @@ import { ConnectDialog } from "@/components/ConnectDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { projectsOptions, proofsOptions, trackImpressions, useMyProfile, useMySentIds, useSemanticScores } from "@/hooks/use-slyk-data";
 import { CATEGORIES, INCENTIVES, SORTS, STAGES, filterProjects, matchScore, sortProjects, trustBadges, type Project } from "@/lib/slyk";
+import { useEcosystemActivity } from "@/hooks/use-ecosystem-activity";
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -26,6 +27,8 @@ export const Route = createFileRoute("/")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Slyk — Zero-noise collaboration for tech builders" },
       { name: "description", content: "Find AI/ML engineers, developers and co-founders for your tech project. Browse projects and connect in one click." },
       { property: "og:title", content: "Slyk — Zero-noise collaboration for tech builders" },
@@ -56,6 +59,7 @@ function Explore() {
   const navigate = useNavigate({ from: "/" });
   const { user } = useAuth();
   const me = useMyProfile(user?.id);
+  const activity = useEcosystemActivity(user?.id);
   const sent = useMySentIds(user?.id);
   const skills = me.data?.skills ?? [];
   const semantic = useSemanticScores(user?.id);
@@ -132,11 +136,15 @@ function Explore() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="mb-4 flex flex-wrap gap-4 font-mono text-xs text-muted-foreground">
+          {user && <span className="text-success">{activity.active} active builder sessions</span>}
+          {activity.accepted.map(e=><span key={e.id}>Accepted connection · {data.find(p=>p.id===e.project_id)?.title??"Project"}</span>)}
+        </div>
         {list.length === 0 ? (
           <p className="py-16 text-center text-muted-foreground">No projects match these filters.</p>
         ) : view === "grid" ? (
           <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((p) => <ProjectCard key={p.id} p={p} badges={badgesFor(p.id)} score={scoreOf(p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
+            {list.map((p) => <ProjectCard key={p.id} p={p} badges={[...badgesFor(p.id),...((activity.counts.get(p.id)??0)>=5?["Trending Pitch Target"]:[])]} score={scoreOf(p)} sent={sentSet.has(p.id)} onConnect={() => setActive(p)} />)}
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border font-mono text-xs">
@@ -171,6 +179,7 @@ function ProjectCard({ p, badges, score, sent, onConnect }: { p: Project; badges
     <article className="flex flex-col gap-3 bg-card p-5 transition-colors hover:bg-accent/40">
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge variant="outline">{p.entity_type}</Badge>
+        {p.is_demo&&<Badge variant="outline">Sample listing</Badge>}
         <Badge variant="secondary">{p.category}</Badge>
         <Badge variant="outline" className={p.stage === "Live Revenue" || p.stage === "Funded" ? "border-success/40 text-success" : ""}>{p.stage}</Badge>
         <span className="ml-auto"><ScoreBadge score={score} /></span>

@@ -5,9 +5,11 @@ import { routeQualifies } from "./ecosystem";
 import { simToPct } from "./slyk";
 
 export function ecosystemHandler(){
- const client=new Inngest({id:"slyk-ecosystem"});
+ const signingKey=process.env["INNGEST_SIGNING_KEY"];
+ if(!signingKey)throw new Error("Inngest signing is not configured");
+ const client=new Inngest({id:"slyk-ecosystem",signingKey});
  const make=(id:string,cron:string,kind:"github"|"digest"|"routes"|"reengagement")=>client.createFunction({id,triggers:[{cron}],retries:0,concurrency:1},async({step})=>step.run(`bounded-${kind}`,()=>runJob(kind)));
- return serve({client,signingKey:process.env["INNGEST_SIGNING_KEY"],functions:[make("daily-github-proof","0 4 * * *","github"),make("weekly-matches","0 9 * * 1","digest"),make("application-routing","*/5 * * * *","routes"),make("weekly-reengagement","0 10 * * 4","reengagement")]});
+ return serve({client,functions:[make("daily-github-proof","0 4 * * *","github"),make("weekly-matches","0 9 * * 1","digest"),make("application-routing","*/5 * * * *","routes"),make("weekly-reengagement","0 10 * * 4","reengagement")]});
 }
 async function runJob(kind:"github"|"digest"|"routes"|"reengagement"){
  const {supabaseAdmin:db}=await import("@/integrations/supabase/client.server");
