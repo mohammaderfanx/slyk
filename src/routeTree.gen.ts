@@ -18,6 +18,8 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as AuthenticatedDashboardIntegrationsRouteImport } from './routes/_authenticated/dashboard.integrations'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
+import { Route as ApiPublicInngestRouteImport } from './routes/api/public/inngest'
+import { Route as ApiPublicBadgesIdRouteImport } from './routes/api/public/badges.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +67,16 @@ const AuthenticatedProjectsNewRoute =
     path: '/projects/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicInngestRoute = ApiPublicInngestRouteImport.update({
+  id: '/api/public/inngest',
+  path: '/api/public/inngest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBadgesIdRoute = ApiPublicBadgesIdRouteImport.update({
+  id: '/api/public/badges/$id',
+  path: '/api/public/badges/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +87,8 @@ export interface FileRoutesByFullPath {
   '/p/$id': typeof PIdRoute
   '/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
+  '/api/public/inngest': typeof ApiPublicInngestRoute
+  '/api/public/badges/$id': typeof ApiPublicBadgesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,6 +99,8 @@ export interface FileRoutesByTo {
   '/p/$id': typeof PIdRoute
   '/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
+  '/api/public/inngest': typeof ApiPublicInngestRoute
+  '/api/public/badges/$id': typeof ApiPublicBadgesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,6 +113,8 @@ export interface FileRoutesById {
   '/p/$id': typeof PIdRoute
   '/_authenticated/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
+  '/api/public/inngest': typeof ApiPublicInngestRoute
+  '/api/public/badges/$id': typeof ApiPublicBadgesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -109,6 +127,8 @@ export interface FileRouteTypes {
     | '/p/$id'
     | '/dashboard/integrations'
     | '/projects/new'
+    | '/api/public/inngest'
+    | '/api/public/badges/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,6 +139,8 @@ export interface FileRouteTypes {
     | '/p/$id'
     | '/dashboard/integrations'
     | '/projects/new'
+    | '/api/public/inngest'
+    | '/api/public/badges/$id'
   id:
     | '__root__'
     | '/'
@@ -130,6 +152,8 @@ export interface FileRouteTypes {
     | '/p/$id'
     | '/_authenticated/dashboard/integrations'
     | '/_authenticated/projects/new'
+    | '/api/public/inngest'
+    | '/api/public/badges/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -138,6 +162,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BuildersRoute: typeof BuildersRoute
   PIdRoute: typeof PIdRoute
+  ApiPublicInngestRoute: typeof ApiPublicInngestRoute
+  ApiPublicBadgesIdRoute: typeof ApiPublicBadgesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,6 +231,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/inngest': {
+      id: '/api/public/inngest'
+      path: '/api/public/inngest'
+      fullPath: '/api/public/inngest'
+      preLoaderRoute: typeof ApiPublicInngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/badges/$id': {
+      id: '/api/public/badges/$id'
+      path: '/api/public/badges/$id'
+      fullPath: '/api/public/badges/$id'
+      preLoaderRoute: typeof ApiPublicBadgesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -244,6 +284,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BuildersRoute: BuildersRoute,
   PIdRoute: PIdRoute,
+  ApiPublicInngestRoute: ApiPublicInngestRoute,
+  ApiPublicBadgesIdRoute: ApiPublicBadgesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
