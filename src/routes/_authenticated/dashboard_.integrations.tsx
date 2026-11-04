@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { integrationOptionsFn,saveIntegrationRouting,saveBuilderPreferences } from "@/lib/ecosystem.functions";
 
 const options=(userId:string)=>queryOptions({queryKey:["ecosystem-settings",userId],queryFn:()=>integrationOptionsFn()});
-export const Route=createFileRoute("/_authenticated/dashboard/integrations")({
+export const Route=createFileRoute("/_authenticated/dashboard_/integrations")({
  loader:({context})=>context.queryClient.ensureQueryData(options(context.user.id)),
  head:()=>({meta:[{title:"Ecosystem Integrations — Slyk"},{name:"description",content:"Manage Slyk application routing, weekly matches, and your Master Pitch."},{property:"og:title",content:"Ecosystem Integrations — Slyk"},{property:"og:description",content:"Your developer ecosystem, notification routes, and application preferences."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),
  component:Integrations,
