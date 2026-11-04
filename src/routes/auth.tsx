@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Sign in — Slyk" },
       { name: "description", content: "Sign in to Slyk to post projects and send connect requests." },
       { property: "og:title", content: "Sign in — Slyk" },

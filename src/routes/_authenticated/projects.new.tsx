@@ -15,6 +15,8 @@ import { CATEGORIES, ENTITIES, INCENTIVES, STAGES } from "@/lib/slyk";
 export const Route = createFileRoute("/_authenticated/projects/new")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Post a Project — Slyk" },
       { name: "description", content: "Post your tech project on Slyk and find engineers and co-founders." },
       { property: "og:title", content: "Post a Project — Slyk" },

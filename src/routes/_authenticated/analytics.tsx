@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Analytics — Slyk" },
       { name: "description", content: "Conversion funnel and response times for your Slyk projects." },
       { property: "og:title", content: "Analytics — Slyk" },

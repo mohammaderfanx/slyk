@@ -27,6 +27,8 @@ export const Route = createFileRoute("/")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Slyk — Zero-noise collaboration for tech builders" },
       { name: "description", content: "Find AI/ML engineers, developers and co-founders for your tech project. Browse projects and connect in one click." },
       { property: "og:title", content: "Slyk — Zero-noise collaboration for tech builders" },

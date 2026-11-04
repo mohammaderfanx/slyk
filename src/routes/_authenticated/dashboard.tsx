@@ -29,6 +29,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   validateSearch: z.object({ tab: z.enum(TABS).optional().catch(undefined) }),
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Dashboard — Slyk" },
       { name: "description", content: "Manage your Slyk projects, inbound pitches and builder profile." },
       { property: "og:title", content: "Dashboard — Slyk" },
