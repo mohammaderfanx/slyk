@@ -16,7 +16,7 @@ import { Route as BuildersRouteImport } from './routes/builders'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as PIdRouteImport } from './routes/p.$id'
-import { Route as AuthenticatedDashboardIntegrationsRouteImport } from './routes/_authenticated/dashboard.integrations'
+import { Route as AuthenticatedDashboardIntegrationsRouteImport } from './routes/_authenticated/dashboard_.integrations'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as ApiPublicInngestRouteImport } from './routes/api/public/inngest'
 import { Route as ApiPublicBadgesIdRouteImport } from './routes/api/public/badges.$id'
@@ -57,9 +57,9 @@ const PIdRoute = PIdRouteImport.update({
 } as any)
 const AuthenticatedDashboardIntegrationsRoute =
   AuthenticatedDashboardIntegrationsRouteImport.update({
-    id: '/integrations',
-    path: '/integrations',
-    getParentRoute: () => AuthenticatedDashboardRoute,
+    id: '/dashboard_/integrations',
+    path: '/dashboard/integrations',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProjectsNewRoute =
   AuthenticatedProjectsNewRouteImport.update({
@@ -83,7 +83,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/builders': typeof BuildersRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/p/$id': typeof PIdRoute
   '/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
@@ -95,7 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/builders': typeof BuildersRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/p/$id': typeof PIdRoute
   '/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
@@ -109,9 +109,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/builders': typeof BuildersRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/p/$id': typeof PIdRoute
-  '/_authenticated/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
+  '/_authenticated/dashboard_/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/api/public/inngest': typeof ApiPublicInngestRoute
   '/api/public/badges/$id': typeof ApiPublicBadgesIdRoute
@@ -150,7 +150,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
     | '/p/$id'
-    | '/_authenticated/dashboard/integrations'
+    | '/_authenticated/dashboard_/integrations'
     | '/_authenticated/projects/new'
     | '/api/public/inngest'
     | '/api/public/badges/$id'
@@ -217,12 +217,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/dashboard/integrations': {
-      id: '/_authenticated/dashboard/integrations'
-      path: '/integrations'
+    '/_authenticated/dashboard_/integrations': {
+      id: '/_authenticated/dashboard_/integrations'
+      path: '/dashboard/integrations'
       fullPath: '/dashboard/integrations'
       preLoaderRoute: typeof AuthenticatedDashboardIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/projects/new': {
       id: '/_authenticated/projects/new'
@@ -248,30 +248,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedDashboardRouteChildren {
-  AuthenticatedDashboardIntegrationsRoute: typeof AuthenticatedDashboardIntegrationsRoute
-}
-
-const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
-  {
-    AuthenticatedDashboardIntegrationsRoute:
-      AuthenticatedDashboardIntegrationsRoute,
-  }
-
-const AuthenticatedDashboardRouteWithChildren =
-  AuthenticatedDashboardRoute._addFileChildren(
-    AuthenticatedDashboardRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDashboardIntegrationsRoute: typeof AuthenticatedDashboardIntegrationsRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDashboardIntegrationsRoute:
+    AuthenticatedDashboardIntegrationsRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
 }
 
