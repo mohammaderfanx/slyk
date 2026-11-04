@@ -14,6 +14,49 @@ export type Database = {
   }
   public: {
     Tables: {
+      autonomous_matches: {
+        Row: {
+          builder_id: string
+          project_id: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          builder_id: string
+          project_id: string
+          score: number
+          updated_at?: string
+        }
+        Update: {
+          builder_id?: string
+          project_id?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "autonomous_matches_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "autonomous_matches_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "autonomous_matches_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       builder_invites: {
         Row: {
           builder_id: string
@@ -892,6 +935,7 @@ export type Database = {
           verification_status: Database["public"]["Enums"]["verification_status"]
         }[]
       }
+      refresh_autonomous_matches: { Args: { _uid: string }; Returns: number }
       refresh_reputation: { Args: { _uid: string }; Returns: undefined }
       routing_match_score: { Args: { _request_id: string }; Returns: number }
       store_integration_secret: {
