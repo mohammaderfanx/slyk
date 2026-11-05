@@ -21,11 +21,15 @@
 - [ ] Blocked: email/Telegram alerts (need Resend or Telegram key)
 
 ## Phase 4
-- [ ] Secure alignment, feedback, integration settings, invites, master pitches and activity schema
-- [ ] Co-founder calculator, alignment editor and accepted-connection checklist
-- [ ] Deep-proof builder directory, verified invitations and Instant Apply
-- [ ] Integration manager and private notification routing
-- [ ] Live presence, trending targets and aggregate acceptance activity
-- [ ] Inngest orchestration, GitHub sync, weekly Resend digest and re-engagement
-- [ ] Clearly labelled sample builders and four new sample projects
-- [ ] Tests and authenticated end-to-end checks
+- [x] Secure alignment, feedback, integration settings, invites, master pitches and activity schema
+- [x] Co-founder calculator, alignment editor and accepted-connection checklist
+- [x] Deep-proof builder directory, verified invitation/Instant Apply RPCs and eligibility rejection checks
+- [x] Integration manager and encrypted Discord routing configuration
+- [x] Live anonymous presence counts, trending targets and aggregate acceptance activity
+- [x] Inngest job definitions for public GitHub sync, stored-vector matching, weekly digest, routing and re-engagement
+- [x] Five clearly labelled sample builders and four new sample projects
+- [x] 20 tests passed; signed-in preferences and co-founder terms saved/read back; desktop/mobile settings and evidence checked; badge returned 200; privilege escalation and unverified Instant Apply rejected with 403
+- [ ] Blocked: activate and verify scheduled jobs after publishing and Inngest sync; unsigned registration request returned 401
+- [ ] Blocked: weekly Resend delivery needs a verified sender email, not only the display name "Slyk"; domain lookup unavailable with send-only key
+- [ ] Blocked: GitHub/Slack per-user account setup skipped; Linear/Notion OAuth clients and Telegram bot credentials absent
+- [ ] Blocked: external Discord delivery needs a real destination; successful invite/Instant Apply and accepted-handshake checks need a real verified builder and pending pitch

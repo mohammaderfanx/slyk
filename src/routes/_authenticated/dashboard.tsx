@@ -335,7 +335,15 @@ function ProjectPanel({ p }: { p: Project }) {
   });
   const recs = useQuery({
     queryKey: ["recs", p.id],
-    queryFn: async () => (await supabase.rpc("recommend_builders", { _project_id: p.id })).data ?? [],
+    queryFn: async () => {
+      const [{data:builders,error},{data:samples,error:sampleError}]=await Promise.all([
+        supabase.rpc("recommend_builders",{_project_id:p.id}),
+        supabase.from("profiles").select("id").eq("is_demo",true),
+      ]);
+      if(error)throw error;if(sampleError)throw sampleError;
+      const demoIds=new Set((samples??[]).map(b=>b.id));
+      return (builders??[]).filter(b=>!demoIds.has(b.id));
+    },
   });
 
   async function addProof(e: React.FormEvent) {
