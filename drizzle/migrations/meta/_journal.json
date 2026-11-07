@@ -57,6 +57,20 @@
       "when": 1793790240443,
       "tag": "0007_phase4_eligibility_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794057543216,
+      "tag": "0008_phase5_talent_network",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794057566228,
+      "tag": "0009_phase5_pipeline_latency_integrity",
+      "breakpoints": true
     }
   ]
 }

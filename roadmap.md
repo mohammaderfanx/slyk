@@ -1,5 +1,16 @@
 # Slyk roadmap
 
+## Phase 5
+- [ ] Workspace portfolios and role-scoped candidate notes
+- [ ] Bounty marketplace and delivery/sign-off workflow
+- [ ] Public builder passports and immutable evidence records
+- [ ] Founder-reviewed scout queue and reciprocal high-signal matches
+- [ ] Participant-scoped merger proposals and alignment
+- [ ] Three labelled sample portfolios, six unfunded sample bounties, four sample passports
+- [ ] Verify permissions, key workflows and mobile layouts
+- [ ] Blocked: real escrow requires a supported payments account and verified payment events
+- [ ] Blocked: distributed realtime nodes/pooling are managed infrastructure, not app configuration
+
 ## Phase 2 (finish)
 - [x] Header: notification bell + Cmd+K palette
 - [x] Dashboard: Pending/Accepted/Archived tabs, optimistic accept/decline, contact launchers, My Pitches, skills on profile

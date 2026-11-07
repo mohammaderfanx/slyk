@@ -57,6 +57,55 @@ export type Database = {
           },
         ]
       }
+      builder_endorsements: {
+        Row: {
+          author_id: string
+          created_at: string
+          id: string
+          request_id: string
+          skill: string
+          subject_id: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          id?: string
+          request_id: string
+          skill: string
+          subject_id: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+          skill?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_endorsements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_endorsements_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "connect_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_endorsements_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       builder_invites: {
         Row: {
           builder_id: string
@@ -100,6 +149,38 @@ export type Database = {
           },
         ]
       }
+      builder_passports: {
+        Row: {
+          contribution_graph: Json
+          headline: string
+          is_demo: boolean
+          user_id: string
+          username: string
+        }
+        Insert: {
+          contribution_graph?: Json
+          headline?: string
+          is_demo?: boolean
+          user_id: string
+          username: string
+        }
+        Update: {
+          contribution_graph?: Json
+          headline?: string
+          is_demo?: boolean
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_passports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       builder_preferences: {
         Row: {
           available: boolean
@@ -133,6 +214,47 @@ export type Database = {
             foreignKeyName: "builder_preferences_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      builder_verifiable_credentials: {
+        Row: {
+          claim_type: Database["public"]["Enums"]["credential_claim"]
+          event_id: string
+          id: string
+          issuer: string
+          proof_hash: string
+          source: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          claim_type: Database["public"]["Enums"]["credential_claim"]
+          event_id: string
+          id?: string
+          issuer?: string
+          proof_hash: string
+          source: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          claim_type?: Database["public"]["Enums"]["credential_claim"]
+          event_id?: string
+          id?: string
+          issuer?: string
+          proof_hash?: string
+          source?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_verifiable_credentials_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -279,6 +401,38 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credential_verified_events: {
+        Row: {
+          event_id: string
+          payload: Json
+          source: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          event_id: string
+          payload: Json
+          source: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          event_id?: string
+          payload?: Json
+          source?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credential_verified_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -591,6 +745,88 @@ export type Database = {
         }
         Relationships: []
       }
+      project_bounties: {
+        Row: {
+          assignee_id: string | null
+          builder_signed_at: string | null
+          created_at: string
+          currency: string
+          delivery_url: string | null
+          description: string
+          duration: string
+          funding_status: string
+          id: string
+          is_demo: boolean
+          owner_signed_at: string | null
+          payout_type: Database["public"]["Enums"]["bounty_payout"]
+          project_id: string
+          reward_amount: number
+          status: Database["public"]["Enums"]["bounty_status"]
+          tech_stack: string[]
+          title: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          builder_signed_at?: string | null
+          created_at?: string
+          currency?: string
+          delivery_url?: string | null
+          description?: string
+          duration?: string
+          funding_status?: string
+          id?: string
+          is_demo?: boolean
+          owner_signed_at?: string | null
+          payout_type?: Database["public"]["Enums"]["bounty_payout"]
+          project_id: string
+          reward_amount: number
+          status?: Database["public"]["Enums"]["bounty_status"]
+          tech_stack?: string[]
+          title: string
+        }
+        Update: {
+          assignee_id?: string | null
+          builder_signed_at?: string | null
+          created_at?: string
+          currency?: string
+          delivery_url?: string | null
+          description?: string
+          duration?: string
+          funding_status?: string
+          id?: string
+          is_demo?: boolean
+          owner_signed_at?: string | null
+          payout_type?: Database["public"]["Enums"]["bounty_payout"]
+          project_id?: string
+          reward_amount?: number
+          status?: Database["public"]["Enums"]["bounty_status"]
+          tech_stack?: string[]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_bounties_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_bounties_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_bounties_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_embeddings: {
         Row: {
           content_hash: string
@@ -660,6 +896,75 @@ export type Database = {
           {
             foreignKeyName: "project_events_project_id_fkey"
             columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_merger_proposals: {
+        Row: {
+          created_at: string
+          id: string
+          proposer_id: string
+          risk_tolerance: string
+          source_project: string
+          status: string
+          target_project: string
+          terms: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          proposer_id: string
+          risk_tolerance: string
+          source_project: string
+          status?: string
+          target_project: string
+          terms: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          proposer_id?: string
+          risk_tolerance?: string
+          source_project?: string
+          status?: string
+          target_project?: string
+          terms?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_merger_proposals_proposer_id_fkey"
+            columns: ["proposer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_merger_proposals_source_project_fkey"
+            columns: ["source_project"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_merger_proposals_source_project_fkey"
+            columns: ["source_project"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_merger_proposals_target_project_fkey"
+            columns: ["target_project"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_merger_proposals_target_project_fkey"
+            columns: ["target_project"]
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
@@ -764,6 +1069,417 @@ export type Database = {
           },
         ]
       }
+      reciprocal_match_alerts: {
+        Row: {
+          builder_id: string
+          created_at: string
+          project_id: string
+          similarity: number
+        }
+        Insert: {
+          builder_id: string
+          created_at?: string
+          project_id: string
+          similarity: number
+        }
+        Update: {
+          builder_id?: string
+          created_at?: string
+          project_id?: string
+          similarity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reciprocal_match_alerts_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reciprocal_match_alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "reciprocal_match_alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scout_candidates: {
+        Row: {
+          created_at: string
+          draft_pitch: string
+          evidence_summary: string
+          handle: string
+          id: string
+          project_id: string
+          run_id: string
+          source: string
+          source_url: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          draft_pitch: string
+          evidence_summary: string
+          handle: string
+          id?: string
+          project_id: string
+          run_id: string
+          source: string
+          source_url: string
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          draft_pitch?: string
+          evidence_summary?: string
+          handle?: string
+          id?: string
+          project_id?: string
+          run_id?: string
+          source?: string
+          source_url?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scout_candidates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "scout_candidates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scout_candidates_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "scout_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scout_candidates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scout_processed_items: {
+        Row: {
+          completed_at: string
+          item_key: string
+          run_id: string
+        }
+        Insert: {
+          completed_at?: string
+          item_key: string
+          run_id: string
+        }
+        Update: {
+          completed_at?: string
+          item_key?: string
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scout_processed_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "scout_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scout_runs: {
+        Row: {
+          created_at: string
+          id: string
+          lease_token: string | null
+          lease_until: string | null
+          pause_reason: string | null
+          project_id: string
+          requested_by: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lease_token?: string | null
+          lease_until?: string | null
+          pause_reason?: string | null
+          project_id: string
+          requested_by: string
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lease_token?: string | null
+          lease_until?: string | null
+          pause_reason?: string | null
+          project_id?: string
+          requested_by?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scout_runs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "scout_runs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scout_runs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scout_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_candidate_notes: {
+        Row: {
+          author_id: string
+          created_at: string
+          id: string
+          note: string
+          request_id: string
+          workspace_id: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          id?: string
+          note: string
+          request_id: string
+          workspace_id: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+          request_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_candidate_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_candidate_notes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "connect_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_candidate_notes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_candidates: {
+        Row: {
+          added_by: string
+          builder_id: string
+          stage: string
+          workspace_id: string
+        }
+        Insert: {
+          added_by: string
+          builder_id: string
+          stage?: string
+          workspace_id: string
+        }
+        Update: {
+          added_by?: string
+          builder_id?: string
+          stage?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_candidates_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_candidates_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_candidates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_members: {
+        Row: {
+          role: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_projects: {
+        Row: {
+          project_id: string
+          workspace_id: string
+        }
+        Insert: {
+          project_id: string
+          workspace_id: string
+        }
+        Update: {
+          project_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "match_analytics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "workspace_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_projects_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          domain: string | null
+          id: string
+          is_demo: boolean
+          logo_url: string | null
+          name: string
+          owner_id: string | null
+          slug: string
+          tier: Database["public"]["Enums"]["workspace_tier"]
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          is_demo?: boolean
+          logo_url?: string | null
+          name: string
+          owner_id?: string | null
+          slug: string
+          tier?: Database["public"]["Enums"]["workspace_tier"]
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          is_demo?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_id?: string | null
+          slug?: string
+          tier?: Database["public"]["Enums"]["workspace_tier"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       match_analytics: {
@@ -835,11 +1551,36 @@ export type Database = {
           similarity: number
         }[]
       }
+      attach_workspace_project: {
+        Args: { _project: string; _workspace: string }
+        Returns: undefined
+      }
       available_builders: {
         Args: never
         Returns: {
           id: string
         }[]
+      }
+      bounty_action: {
+        Args: { _action: string; _bounty: string; _delivery?: string }
+        Returns: undefined
+      }
+      claim_scout_run: { Args: { _run: string }; Returns: string }
+      create_bounty: {
+        Args: {
+          _amount: number
+          _currency: string
+          _description: string
+          _duration: string
+          _payout: Database["public"]["Enums"]["bounty_payout"]
+          _project: string
+          _title: string
+        }
+        Returns: string
+      }
+      create_workspace: {
+        Args: { _name: string; _slug: string }
+        Returns: string
       }
       decline_with_feedback: {
         Args: {
@@ -847,6 +1588,18 @@ export type Database = {
           _rating?: number
           _reason: Database["public"]["Enums"]["pass_reason_type"]
           _request_id: string
+        }
+        Returns: undefined
+      }
+      finish_scout_item: {
+        Args: {
+          _handle: string
+          _pitch: string
+          _run: string
+          _source: string
+          _summary: string
+          _token: string
+          _url: string
         }
         Returns: undefined
       }
@@ -868,11 +1621,41 @@ export type Database = {
         Args: { _builder_id: string; _project_id: string }
         Returns: string
       }
+      issue_verified_credential: {
+        Args: {
+          _claim: Database["public"]["Enums"]["credential_claim"]
+          _event: string
+          _source: string
+        }
+        Returns: string
+      }
+      manage_workspace_member: {
+        Args: {
+          _role: Database["public"]["Enums"]["workspace_role"]
+          _user: string
+          _workspace: string
+        }
+        Returns: undefined
+      }
       my_semantic_scores: {
         Args: never
         Returns: {
           project_id: string
           similarity: number
+        }[]
+      }
+      portfolio_pipeline: {
+        Args: { _workspace: string }
+        Returns: {
+          builder_id: string
+          builder_name: string
+          created_at: string
+          pitch_sentence: string
+          project_id: string
+          project_title: string
+          request_id: string
+          response_hours: number
+          status: string
         }[]
       }
       profiles_missing_embeddings: {
@@ -906,12 +1689,25 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      propose_merger: {
+        Args: {
+          _risk: string
+          _source: string
+          _target: string
+          _terms: string
+        }
+        Returns: string
+      }
       public_project_badge: {
         Args: { _project_id: string }
         Returns: {
           applicants: number
           looking_for: string
         }[]
+      }
+      queue_scout: {
+        Args: { _project: string; _workspace: string }
+        Returns: string
       }
       read_integration_secret: {
         Args: {
@@ -936,8 +1732,29 @@ export type Database = {
         }[]
       }
       refresh_autonomous_matches: { Args: { _uid: string }; Returns: number }
+      refresh_reciprocal_alerts: { Args: never; Returns: number }
       refresh_reputation: { Args: { _uid: string }; Returns: undefined }
+      respond_merger: {
+        Args: { _decision: string; _proposal: string }
+        Returns: undefined
+      }
+      review_scout_candidate: {
+        Args: { _candidate: string; _draft: string; _status: string }
+        Returns: undefined
+      }
       routing_match_score: { Args: { _request_id: string }; Returns: number }
+      save_builder_passport: {
+        Args: { _headline: string; _username: string }
+        Returns: undefined
+      }
+      save_candidate_note: {
+        Args: { _note: string; _request: string; _workspace: string }
+        Returns: undefined
+      }
+      save_workspace_candidate: {
+        Args: { _builder: string; _stage: string; _workspace: string }
+        Returns: undefined
+      }
       store_integration_secret: {
         Args: {
           _key: string
@@ -962,12 +1779,22 @@ export type Database = {
           title: string
         }[]
       }
+      workspace_access: {
+        Args: { _manage?: boolean; _workspace: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      bounty_payout: "Milestone" | "Completion" | "RevShare"
+      bounty_status: "open" | "assigned" | "submitted" | "paid"
       commitment_type:
         | "Side Project (<10h/wk)"
         | "Part-Time (10-20h/wk)"
         | "Full-Time Co-Founder"
+      credential_claim:
+        | "Top_1_Percent_Committer"
+        | "Successful_Exit"
+        | "AI_Ship_Streak"
       entity_type: "Solo Founder" | "Early Team" | "Company"
       incentive_type: "Equity" | "Paid" | "Equity + Paid" | "Open Source"
       integration_provider:
@@ -995,6 +1822,8 @@ export type Database = {
       proof_type: "github_repo" | "demo_video" | "live_metrics" | "deck_url"
       request_status: "pending" | "accepted" | "declined"
       verification_status: "unverified" | "github_verified" | "top_builder"
+      workspace_role: "owner" | "admin" | "member" | "recruiter" | "founder"
+      workspace_tier: "Free" | "Pro_Founder" | "Enterprise_VC"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1122,10 +1951,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      bounty_payout: ["Milestone", "Completion", "RevShare"],
+      bounty_status: ["open", "assigned", "submitted", "paid"],
       commitment_type: [
         "Side Project (<10h/wk)",
         "Part-Time (10-20h/wk)",
         "Full-Time Co-Founder",
+      ],
+      credential_claim: [
+        "Top_1_Percent_Committer",
+        "Successful_Exit",
+        "AI_Ship_Streak",
       ],
       entity_type: ["Solo Founder", "Early Team", "Company"],
       incentive_type: ["Equity", "Paid", "Equity + Paid", "Open Source"],
@@ -1157,6 +1993,8 @@ export const Constants = {
       proof_type: ["github_repo", "demo_video", "live_metrics", "deck_url"],
       request_status: ["pending", "accepted", "declined"],
       verification_status: ["unverified", "github_verified", "top_builder"],
+      workspace_role: ["owner", "admin", "member", "recruiter", "founder"],
+      workspace_tier: ["Free", "Pro_Founder", "Enterprise_VC"],
     },
   },
 } as const
