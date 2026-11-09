@@ -12,10 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BountiesRouteImport } from './routes/bounties'
 import { Route as BuildersRouteImport } from './routes/builders'
+import { Route as OrgRouteImport } from './routes/org'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as OrgSlugRouteImport } from './routes/org_.$slug'
 import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as AuthenticatedDashboardIntegrationsRouteImport } from './routes/_authenticated/dashboard_.integrations'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as ApiPublicInngestRouteImport } from './routes/api/public/inngest'
@@ -35,9 +39,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BountiesRoute = BountiesRouteImport.update({
+  id: '/bounties',
+  path: '/bounties',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BuildersRoute = BuildersRouteImport.update({
   id: '/builders',
   path: '/builders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgRoute = OrgRouteImport.update({
+  id: '/org',
+  path: '/org',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
@@ -50,9 +64,19 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const OrgSlugRoute = OrgSlugRouteImport.update({
+  id: '/org_/$slug',
+  path: '/org/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PIdRoute = PIdRouteImport.update({
   id: '/p/$id',
   path: '/p/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardIntegrationsRoute =
@@ -81,10 +105,14 @@ const ApiPublicBadgesIdRoute = ApiPublicBadgesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bounties': typeof BountiesRoute
   '/builders': typeof BuildersRoute
+  '/org': typeof OrgRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/org/$slug': typeof OrgSlugRoute
   '/p/$id': typeof PIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/api/public/inngest': typeof ApiPublicInngestRoute
@@ -93,10 +121,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bounties': typeof BountiesRoute
   '/builders': typeof BuildersRoute
+  '/org': typeof OrgRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/org/$slug': typeof OrgSlugRoute
   '/p/$id': typeof PIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/dashboard/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/api/public/inngest': typeof ApiPublicInngestRoute
@@ -107,10 +139,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bounties': typeof BountiesRoute
   '/builders': typeof BuildersRoute
+  '/org': typeof OrgRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/org_/$slug': typeof OrgSlugRoute
   '/p/$id': typeof PIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/_authenticated/dashboard_/integrations': typeof AuthenticatedDashboardIntegrationsRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/api/public/inngest': typeof ApiPublicInngestRoute
@@ -121,10 +157,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/bounties'
     | '/builders'
+    | '/org'
     | '/analytics'
     | '/dashboard'
+    | '/org/$slug'
     | '/p/$id'
+    | '/u/$username'
     | '/dashboard/integrations'
     | '/projects/new'
     | '/api/public/inngest'
@@ -133,10 +173,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/bounties'
     | '/builders'
+    | '/org'
     | '/analytics'
     | '/dashboard'
+    | '/org/$slug'
     | '/p/$id'
+    | '/u/$username'
     | '/dashboard/integrations'
     | '/projects/new'
     | '/api/public/inngest'
@@ -146,10 +190,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/bounties'
     | '/builders'
+    | '/org'
     | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
+    | '/org_/$slug'
     | '/p/$id'
+    | '/u/$username'
     | '/_authenticated/dashboard_/integrations'
     | '/_authenticated/projects/new'
     | '/api/public/inngest'
@@ -160,8 +208,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BountiesRoute: typeof BountiesRoute
   BuildersRoute: typeof BuildersRoute
+  OrgRoute: typeof OrgRoute
+  OrgSlugRoute: typeof OrgSlugRoute
   PIdRoute: typeof PIdRoute
+  UUsernameRoute: typeof UUsernameRoute
   ApiPublicInngestRoute: typeof ApiPublicInngestRoute
   ApiPublicBadgesIdRoute: typeof ApiPublicBadgesIdRoute
 }
@@ -189,11 +241,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bounties': {
+      id: '/bounties'
+      path: '/bounties'
+      fullPath: '/bounties'
+      preLoaderRoute: typeof BountiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/builders': {
       id: '/builders'
       path: '/builders'
       fullPath: '/builders'
       preLoaderRoute: typeof BuildersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org': {
+      id: '/org'
+      path: '/org'
+      fullPath: '/org'
+      preLoaderRoute: typeof OrgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/analytics': {
@@ -210,11 +276,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/org_/$slug': {
+      id: '/org_/$slug'
+      path: '/org/$slug'
+      fullPath: '/org/$slug'
+      preLoaderRoute: typeof OrgSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/p/$id': {
       id: '/p/$id'
       path: '/p/$id'
       fullPath: '/p/$id'
       preLoaderRoute: typeof PIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard_/integrations': {
@@ -270,8 +350,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BountiesRoute: BountiesRoute,
   BuildersRoute: BuildersRoute,
+  OrgRoute: OrgRoute,
+  OrgSlugRoute: OrgSlugRoute,
   PIdRoute: PIdRoute,
+  UUsernameRoute: UUsernameRoute,
   ApiPublicInngestRoute: ApiPublicInngestRoute,
   ApiPublicBadgesIdRoute: ApiPublicBadgesIdRoute,
 }
